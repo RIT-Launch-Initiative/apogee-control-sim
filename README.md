@@ -12,7 +12,7 @@ Thank you to UoM ARES for making their work publicly available.
 1. `https://github.com/RIT-Launch-Initiative/lmatlib`
 ## Retrieve from Git
 1. Create empty folders for this repository and each dependency under a common folder.
-2. In the top-left, use **New->Project->From Git** to clone this repository
+2. In the top-left of the MATLAB toolbar, use **New->Project->From Git** to clone this repository
    (link in "Repository Path") its dependencies to those folders (path in
    "Sandbox"). 
 3. Open the `.prj` file for this project.
