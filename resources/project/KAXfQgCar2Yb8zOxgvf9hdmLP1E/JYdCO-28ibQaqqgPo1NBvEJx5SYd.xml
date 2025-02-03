@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Info File="sim/sim_2dof.slx" GroupUUID="" Icon="" Name="sim_2dof" Type="StartUp" Visible="0">
+    <Extension Name="StartUpPrev" Value="d9717290-f6c8-466f-83ae-7b639f85cb42"/>
+</Info>
