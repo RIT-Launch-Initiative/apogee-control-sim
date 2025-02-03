@@ -8,11 +8,11 @@ simulations.
 Thank you to UoM ARES for making their work publicly available. 
 
 # Installation instructions
+## Retrieve from Git
+For this repository and **each** dependency, perform the following actions **under a common folder**:
+1. Create an empty folder **using the repository name (the word after RIT-Launch-Initiative)**.
+2. In the top-left of the MATLAB toolbar, use **New->Project->From Git** to clone this repository
+3. URL of the repository, without `/tree/main`, in "Repository Path"\
+4. Folder path in "Sandbox".
 ## Dependencies
 1. `https://github.com/RIT-Launch-Initiative/lmatlib`
-## Retrieve from Git
-1. Create empty folders for this repository and each dependency under a common folder.
-2. In the top-left of the MATLAB toolbar, use **New->Project->From Git** to clone this repository
-   (link in "Repository Path") its dependencies to those folders (path in
-   "Sandbox"). 
-3. Open the `.prj` file for this project.
