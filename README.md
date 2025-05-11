@@ -1,11 +1,6 @@
 # apogee-control-sim
-Simulations for RIT Launch's prototype apogee control system. 
-
-The first prototype's control scheme is derived from that used by SAC-2024 Team
-97 'ARES', in creating a LUT-based model-predictive controller using offline
-simulations. 
-
-Thank you to UoM ARES for making their work publicly available. 
+Simulations for RIT Launch's prototype apogee control system. A 2-DOF dynamic
+model simulates the rocket's dynamics and controller response.
 
 # Installation instructions
 ## Required Products
@@ -37,3 +32,11 @@ Open this project's `.prj` file and ensure it loads without errors or broken ref
 ## Git dependencies
 1. `https://github.com/RIT-Launch-Initiative/lmatlib`
 
+# Acknowledgements
+The first prototype's control scheme is heavily inspired by that used by
+SAC-2024 Team 97 'ARES', in creating a LUT-based model-predictive controller
+using offline simulations. Thank you to UoM ARES for making their work publicly
+available. 
+
+The current simulations use the OpenRocket model for Jake Halpern's L2 'CRUD' as
+a base.
