@@ -17,17 +17,16 @@ simin = struct2input(sim_file, vehicle_data);
 simin = struct2input(simin, inits);
 
 simout = sim(simin);
-outputs = extractTimetable(simout.yout);
 logs = extractTimetable(simout.logsout);
 
 %% Plot and compare
-figure;
+figure(name = "Output comparison");
 layout = tiledlayout("vertical");
 layout.TileSpacing = "tight";
 
 nexttile; hold on; grid on;
 plot(data.Time, data.Altitude, DisplayName = "OpenRocket");
-plot(outputs.Time, outputs.Altitude, DisplayName = "Simulink true");
+plot(logs.Time, logs.position(:, 2), DisplayName = "Simulink true");
 plot(logs.Time, logs.altitude_measured, DisplayName = "Simulink measured");
 ylabel("Altitude"); ysecondarylabel("m AGL");
 legend(Location = "northoutside", Orientation = "horizontal");
