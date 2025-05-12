@@ -5,6 +5,7 @@ function ext = find_extension(target, simin, guess)
     simin = simin.setModelParameter(SimulationMode = "accelerator");
     % use FastRestart to prevent model recompilation
     simin = simin.setModelParameter(FastRestart = "on");
+    simin = simin.setVariable(control_mode = "const");
     
 
     % set up optimization
@@ -22,7 +23,7 @@ function ext = find_extension(target, simin, guess)
 
     function cost = costfunc(ext)
         ext = clip(ext, 0, 1);
-        si = simin.setVariable("const_brake", ext);
+        si = simin.setVariable(const_brake = ext);
         so = sim(si);
         % use Dataset's getElement so we don't incur expense of converting to timetable
         cost = abs(target - so.apogee);

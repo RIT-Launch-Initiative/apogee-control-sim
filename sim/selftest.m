@@ -9,7 +9,7 @@ data = doc.simulate(doc.sims(1), outputs = "ALL", stop = "APOGEE");
 inits = get_initial_data(data);
 
 inits.dt = 0.01;
-inits.control_brake = false;
+inits.control_mode = "const";
 inits.const_brake = 0;
 
 %% Simulate
