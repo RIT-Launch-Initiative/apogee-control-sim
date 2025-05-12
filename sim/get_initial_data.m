@@ -9,13 +9,10 @@ function params = get_initial_data(simout)
         simout timetable
     end
     
-    coastrange = timerange(eventfilter("BURNOUT"), eventfilter("APOGEE"), "closed");
-    coast = simout(coastrange, :);
     burnout_state = simout(eventfilter("BURNOUT"), :);
 
-    params.t_0 = seconds(coast.Time(1));
-    params.t_f = seconds(coast.Time(end)) + 2;
-    params.position_init = coast{1, ["Lateral distance", "Altitude"]}';
-    params.velocity_init = coast{1, ["Lateral velocity", "Vertical velocity"]}';
+    params.t_0 = seconds(burnout_state.Time);
+    params.position_init = burnout_state{1, ["Lateral distance", "Altitude"]}';
+    params.velocity_init = burnout_state{1, ["Lateral velocity", "Vertical velocity"]}';
     % ^ these need to be transposed to columns to fit what Simulink expects
 end
