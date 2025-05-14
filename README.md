@@ -2,6 +2,23 @@
 Simulations for RIT Launch's prototype apogee control system. A 2-DOF dynamic
 model simulates the rocket's dynamics and controller response.
 
+# Structure
+The core model is `sim_2dof.slx`. It defines a skeleton to populate with more
+detailed models. Currently, the two major points of flexibility are the
+controller and aerodynamic models.
+
+```
+data/   - raw flight data
+        - generated data files (lookup tables)
+
+sim/    - simulation models and subsystems
+        - helper functions to interact with models
+
+test/   - uses files in sim/ and data/ to produce test results
+        - everything that produces a plot for a report goes here
+
+```
+
 # Installation instructions
 ## Required Products
 1. Simulink
