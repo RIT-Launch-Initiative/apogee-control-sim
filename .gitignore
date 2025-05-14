@@ -35,5 +35,3 @@ codegen/
 # buildtool cache folder
 .buildtool/
 
-# data files
-*.mat

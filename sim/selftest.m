@@ -5,7 +5,10 @@ doc = openrocket(rkt_file);
 
 %% Configure simulation
 vehicle_data = get_vehicle_data(doc);
-data = doc.simulate(doc.sims(1), outputs = "ALL", stop = "APOGEE");
+orsim = doc.sims(1);
+opts = orsim.getOptions();
+opts.setISAAtmosphere(true);
+data = doc.simulate(orsim, outputs = "ALL", stop = "APOGEE");
 inits = get_initial_data(data);
 
 inits.dt = 0.01;
@@ -13,8 +16,8 @@ inits.control_mode = "const";
 inits.const_brake = 0;
 
 %% Simulate
-simin = struct2input(sim_file, vehicle_data);
-simin = struct2input(simin, inits);
+simin = structs2inputs(sim_file, vehicle_data);
+simin = structs2inputs(simin, inits);
 
 simout = sim(simin);
 logs = extractTimetable(simout.logsout);
