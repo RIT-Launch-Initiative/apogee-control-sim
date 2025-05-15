@@ -6,15 +6,15 @@ project_globals;
 %% Simulation
 vehicle_data = get_vehicle_data(doc);
 
-apogee_target = 3048;
 sim = doc.sims(1);
 baseline = doc.simulate(sim, outputs = "ALL", stop = "APOGEE");
 activation_point = find(baseline.("Mach number") >= 0.8, 1, "last");
-altitude_values = linspace(baseline{activation_point, "Altitude"}, apogee_target, 30);
+altitude_values = linspace(baseline{activation_point, "Altitude"}, apogee_target-10, 20);
 
 simin = structs2inputs(sim_file, vehicle_data);
 simin = simin.setVariable(t_0 = 0);
 simin = simin.setVariable(dt = 1/100);
+simin = simin.setVariable(controller_rate = 100);
 simin = setup_const_sim(simin);
 
 [upper, lower] = find_reachable_states(simin, apogee_target, altitude_values, ...

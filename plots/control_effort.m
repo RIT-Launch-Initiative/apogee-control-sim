@@ -1,12 +1,13 @@
 clear;
 project_globals;
 
-simdata = doc.simulate(doc.sims(1), outputs = "ALL", stop = "BURNOUT");
+simdata = doc.simulate(doc.sims(1), outputs = "ALL", stop = "APOGEE");
 vehicle_data = get_vehicle_data(doc);
 inits = get_initial_data(simdata);
 inits.dt = 0.01;
 ctrl.control_mode = "const";
 ctrl.const_brake = 0;
+ctrl.controller_rate = 1/inits.dt;
 
 
 simin = structs2inputs(sim_file, vehicle_data);
@@ -26,13 +27,17 @@ baseline = sim(simin);
 
 cases = sim(simins_on);
 efforts = baseline.apogee - [cases.apogee];
+set_param(simin.ModelName, FastRestart = "off");
 
-figure;
+effort_figure = figure(name = "Airbrake area design curve");
+grid on; hold on;
 plot(1e4 * inputs.PLATE_AREA, efforts, "+");
+yline(max(simdata.Altitude) - apogee_target, "--k", "Required");
 xlabel("Fully-extended area");
 xsecondarylabel("cm^2");
 ylabel("Apogee reduction");
 ysecondarylabel("m");
 
 
-set_param(simin.ModelName, FastRestart = "off");
+
+export_at_size(effort_figure, "effort_curve.pdf", [420 250]);
