@@ -3,11 +3,7 @@ clear;
 run_monte = false;
 
 %% DEFINE INPUT FILES
-luts_path = pfullfile("data", "tables.mat");
-doc_path = pfullfile("data", "CRUD.ork");
-sim_path = pfullfile("sim", "sim_2dof");
-luts = matfile(luts_path, Writable = true);
-doc = openrocket(doc_path);
+project_globals;
 
 %% MONTE CARLO
 if run_monte
@@ -64,30 +60,50 @@ if run_monte
 end
 
 %% LUT RANGES
-apogee_target = 2500; % [m]
 vehicle_data = get_vehicle_data(doc);
 inits.t_0 = 0;
 inits.dt = 0.01;
 
-simin = structs2inputs(sim_path, vehicle_data);
+simin = structs2inputs(sim_file, vehicle_data);
 simin = structs2inputs(simin, inits);
-set_param(simin.ModelName, FastRestart = "off");
-% accelerator mode generates a "simulation target" that runs faster
-simin = simin.setModelParameter(SimulationMode = "accelerator");
-% use FastRestart to prevent model recompilation
-simin = simin.setModelParameter(FastRestart = "on");
+% set_param(simin.ModelName, FastRestart = "off");
+% % accelerator mode generates a "simulation target" that runs faster
+% simin = simin.setModelParameter(SimulationMode = "accelerator");
+% % use FastRestart to prevent model recompilation
+% simin = simin.setModelParameter(FastRestart = "on");
+simin = setup_const_sim(simin);
 
-
-altitudes = linspace(1000, 2500, 40); % [m]
-velocities = linspace(0, 250, 40); % [m/s]
+N_points = 100;
+altitudes = linspace(1000, apogee_target, N_points); % [m]
+velocities = linspace(0, 270, N_points); % [m/s]
 
 % instead of (altitudes, velocities) because this is faster
 [initial_velocities, initial_altitudes] = ndgrid(velocities, altitudes); 
 extensions = zeros(size(initial_altitudes));
 
+% find upper and lower bounds per altitude to 
+[uppers, lowers] = find_reachable_states(simin, apogee_target, altitudes, 0);
+
+
 for i_sim = 1:numel(extensions)
     start = tic;
     this_sim = struct;
+    alt = initial_altitudes(i_sim);
+    vvel = initial_velocities(i_sim);
+
+    % default values for states that can't reach apogee target
+    % use (altitude == alt) instead of i_sim because uppers() and lowers() are 1xN_alt rows
+    if (vvel >= uppers(altitudes == alt))
+        extensions(i_sim) = 1;
+        continue;
+    elseif (vvel <= lowers(altitudes == alt))
+        extensions(i_sim) = 0;
+        continue;
+    end
+
+
+    simin = simin.setVariable(position_init = [0; alt]);
+    simin = simin.setVariable(velocity_init = [0; vvel]);
     this_sim.position_init = [0; initial_altitudes(i_sim)];
     this_sim.velocity_init = [0; initial_velocities(i_sim)];
     si = structs2inputs(simin, this_sim);
@@ -104,7 +120,9 @@ for i_sim = 1:numel(extensions)
 end
 
 set_param(simin.ModelName, FastRestart = "off");
+
 lut = xarray(extensions, vel = velocities, alt = altitudes);
+luts.("lut_" + N_points) = lut;
 
 figure;
 imagesc(lut, cmap = "parula", clabel = "Extension");

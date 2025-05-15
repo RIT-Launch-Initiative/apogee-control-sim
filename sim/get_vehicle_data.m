@@ -29,7 +29,7 @@ function [data] = get_vehicle_data(doc)
     data.GROUND_LEVEL = site.getAltitude();
     data.GRAVITY = conds.getGravityModel().getGravity(site); % [m/s^2]
 
-    data.PLATE_AREA = 2 * 75e-3 * 20e-3; % [m^2] Total area - N petal * Width * Height
+    data.PLATE_AREA = 2 * 9e-2 * 4e-2; % [m^2] Total area - N petal * Width * Height
     data.PLATE_CD = 1.2; % [-] Flat plate or so
 end
 

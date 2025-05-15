@@ -23,6 +23,7 @@ simout_off = sim(simin_off);
 simout_on = sim(simin_on);
 
 target_apogee = 0.8 * (simout_off.apogee - simout_on.apogee) + simout_on.apogee; 
+simin = setup_const_sim(simin);
 tic;
 ext = find_extension(target_apogee, simin, 0.2);
 time = toc;
