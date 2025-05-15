@@ -21,8 +21,8 @@ function [uppers, lowers] = find_reachable_states(simin, target, altitudes, init
     simin = simin.setVariable(position_init = [0; altitudes(1)]);
     simin = simin.setVariable(const_brake = 0);
     hvel = initial_hvel;
-    baseline_vvel = fzero(@zmaxfunc, opts.vvel_guess, fzero_opts);
-    [~, baseline_out] = zmaxfunc(baseline_vvel); % re-run to get full output
+    baseline_vvel = fzero(@minvelfunc, opts.vvel_guess, fzero_opts);
+    [~, baseline_out] = minvelfunc(baseline_vvel); % re-run to get full output
     baseline_out = extractTimetable(baseline_out.logsout);
     hvels = interp1(baseline_out.position(1:end-1, 2), baseline_out.velocity(1:end-1,1), altitudes, "linear", NaN);
     if any(isnan(hvels))
@@ -45,8 +45,8 @@ function [uppers, lowers] = find_reachable_states(simin, target, altitudes, init
         end
 
         hvel = hvels(i_alt);
-        uppers(i_alt) = fzero(@zmaxfunc, upper_guess, fzero_opts);
-        lowers(i_alt) = fzero(@zminfunc, lower_guess, fzero_opts);
+        uppers(i_alt) = fzero(@maxvelfunc, upper_guess, fzero_opts);
+        lowers(i_alt) = fzero(@minvelfunc, lower_guess, fzero_opts);
         fprintf("Finished altitude %d of %d\n", i_alt, length(altitudes));
     end
 
@@ -58,7 +58,7 @@ function [uppers, lowers] = find_reachable_states(simin, target, altitudes, init
     % kind of dirty but the other option is two more nested functions, which is harder to understand
     % second output to get full simulation output when needed
 
-    function [err, so] = zminfunc(vvel)
+    function [err, so] = minvelfunc(vvel)
         simin = simin.setVariable(velocity_init = [hvel; vvel]);
         simin = simin.setVariable(const_brake = 0);
 
@@ -67,7 +67,7 @@ function [uppers, lowers] = find_reachable_states(simin, target, altitudes, init
         err = so.apogee - target;
     end
 
-    function [err, so] = zmaxfunc(vvel)
+    function [err, so] = maxvelfunc(vvel)
         simin = simin.setVariable(velocity_init = [hvel; vvel]);
         simin = simin.setVariable(const_brake = 1);
 
