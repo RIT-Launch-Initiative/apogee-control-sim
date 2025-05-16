@@ -1,7 +1,7 @@
 clear;
 
 run_monte = false;
-generate_table = false;
+generate_table = true;
 
 %% DEFINE INPUT FILES
 project_globals;
@@ -67,7 +67,7 @@ altitudes = linspace(1000, apogee_target - 10, N_points); % [m]
 velocities = linspace(0, 270, N_points); % [m/s]
 
 if generate_table
-    sim_file = pfullfile("sim", "sim_const")
+    sim_file = pfullfile("sim", "sim_const");
     vehicle_data = get_vehicle_data(doc);
     inits.t_0 = 0;
     inits.dt = 0.01;
@@ -75,12 +75,7 @@ if generate_table
 
     simin = structs2inputs(sim_file, vehicle_data);
     simin = structs2inputs(simin, inits);
-    % set_param(simin.ModelName, FastRestart = "off");
-    % % accelerator mode generates a "simulation target" that runs faster
-    % simin = simin.setModelParameter(SimulationMode = "accelerator");
-    % % use FastRestart to prevent model recompilation
-    % simin = simin.setModelParameter(FastRestart = "on");
-    simin = setup_const_sim(simin);
+    simin = simin.setModelParameter(SimulationMode = "accelerator", FastRestart = "on");
 
     % instead of (altitudes, velocities) because this is faster
     [initial_velocities, initial_altitudes] = ndgrid(velocities, altitudes); 
@@ -146,7 +141,7 @@ xlim([1200 Inf]);
 export_at_size(lut_figure, "exhaustive_lut.pdf", [500 400]);
 
 %% Test table
-sim_file = pfullfile("sim", "sim_controller")
+sim_file = pfullfile("sim", "sim_controller");
 vehicle_data = get_vehicle_data(doc);
 data = doc.simulate(doc.sims(1), outputs = "ALL", stop = "APOGEE");
 inits = get_initial_data(data);

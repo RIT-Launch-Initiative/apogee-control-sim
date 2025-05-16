@@ -15,7 +15,7 @@ simin = structs2inputs(sim_file, vehicle_data);
 simin = simin.setVariable(t_0 = 0);
 simin = simin.setVariable(dt = 1/100);
 simin = simin.setVariable(controller_rate = 100);
-simin = setup_const_sim(simin);
+simin = simin.setModelParameter(SimulationMode = "accelerator", FastRestart = "on");
 
 [upper, lower] = find_reachable_states(simin, apogee_target, altitude_values, ...
     baseline{activation_point, "Lateral velocity"});

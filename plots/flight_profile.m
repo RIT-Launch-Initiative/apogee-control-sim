@@ -9,7 +9,6 @@ peak_velocity = 0.8 * 334; % [m/s] first time we can start extending
 drag_fraction = 0.95; % [-] fraction we consider "almost all" of the drag
 
 orsim = doc.sims(1);
-orsim.getOptions().setWindSpeedDeviation(0);
 simdata = doc.simulate(orsim, outputs = "ALL", stop = "APOGEE");
 simdata = simdata(timerange(eventfilter("LAUNCHROD"), eventfilter("APOGEE")), :);
 i_start = find(simdata.("Total velocity") >= peak_velocity, 1, "last");
@@ -61,6 +60,7 @@ plot(simdata.Time, simdata.("Altitude"));
 yregion(simdata.Altitude([i_start i_end]));
 ylabel("Altitude");
 ysecondarylabel("m AGL");
+xlabel("Time");
 
 stack_axes(layout)
 
@@ -80,6 +80,7 @@ plot(regiondata.Time, rad2deg(regiondata.("Angle of attack")));
 yline(1, "--k", Label = "1^\circ AOA", LabelHorizontalAlignment = "center");
 ylabel("Angle of attack");
 ysecondarylabel("deg");
+xlabel("Time");
 stack_axes(layout);
 
 export_at_size(simp_figure, "simplifications.pdf", [600 300]);
