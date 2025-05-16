@@ -67,6 +67,7 @@ altitudes = linspace(1000, apogee_target - 10, N_points); % [m]
 velocities = linspace(0, 270, N_points); % [m/s]
 
 if generate_table
+    sim_file = pfullfile("sim", "sim_const")
     vehicle_data = get_vehicle_data(doc);
     inits.t_0 = 0;
     inits.dt = 0.01;
@@ -145,16 +146,18 @@ xlim([1200 Inf]);
 export_at_size(lut_figure, "exhaustive_lut.pdf", [500 400]);
 
 %% Test table
+sim_file = pfullfile("sim", "sim_controller")
 vehicle_data = get_vehicle_data(doc);
 data = doc.simulate(doc.sims(1), outputs = "ALL", stop = "APOGEE");
 inits = get_initial_data(data);
 inits.dt = 0.01;
 
 ctrl.control_mode = "baro";
-ctrl.controller_rate = 1/inits.dt;
+ctrl.observer_rate = 100;
+ctrl.controller_rate = 10;
 ctrl.baro_lut = xarray2lut(lut);
 
-simin = structs2inputs(simin, vehicle_data);
+simin = structs2inputs(sim_file, vehicle_data);
 simin = structs2inputs(simin, inits);
 simin = structs2inputs(simin, ctrl);
 
