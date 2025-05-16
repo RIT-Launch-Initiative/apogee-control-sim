@@ -19,7 +19,7 @@ simout_on = sim(simin_on);
 target_apogee = 0.8 * (simout_off.apogee - simout_on.apogee) + simout_on.apogee; 
 tic;
 % set up for rapid re-simulation
-simin = simin.setModelParameter(SimulationMode = "accelerator", FastRestart = "on");
+simin = simin.setModelParameter(FastRestart = "on", SimulationMode = "accelerator");
 ext = find_extension(target_apogee, simin, 0.2);
 time = toc;
 

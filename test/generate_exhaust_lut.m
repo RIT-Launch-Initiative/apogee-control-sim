@@ -147,7 +147,7 @@ data = doc.simulate(doc.sims(1), outputs = "ALL", stop = "APOGEE");
 inits = get_initial_data(data);
 inits.dt = 0.01;
 
-ctrl.control_mode = "baro";
+ctrl.control_mode = "exhaust";
 ctrl.observer_rate = 100;
 ctrl.controller_rate = 10;
 ctrl.baro_lut = xarray2lut(lut);

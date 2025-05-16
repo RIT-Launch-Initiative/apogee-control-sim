@@ -4,6 +4,7 @@ clear;
 project_globals;
 
 %% Simulation
+sim_file = pfullfile("sim", "sim_const");
 vehicle_data = get_vehicle_data(doc);
 
 sim = doc.sims(1);
