@@ -32,7 +32,7 @@ function [data] = get_vehicle_data(doc)
     data.PLATE_AREA = 2 * 9e-2 * 4e-2; % [m^2] Total area - N petal * Width * Height
     data.PLATE_CD = 1.2; % [-] Flat plate or so
 
-    data.SERVO_BW = 10; % [Hz]
+    data.SERVO_TC = 0.1; % [s]
     data.BARO_QUANT = 1e-10; % [Pa] 
     data.BARO_RMSN = 0;
 end
