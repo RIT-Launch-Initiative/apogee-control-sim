@@ -11,5 +11,5 @@ function lut = xarray2lut(xarr)
         lut.Breakpoints(i_ax).Value = xarr.coordinates{i_ax};
     end
     lut.Table.Value = double(xarr);
-    lut.StructTypeInfo.Name = "LUT";
+    lut.StructTypeInfo.Name = "LUT" + keyHash(xarr);
 end
