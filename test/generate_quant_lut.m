@@ -6,74 +6,21 @@ project_globals;
 
 %% LUT RANGES
 
-N_alts = 100;
-N_vels = 10;
-altitudes = linspace(1200, apogee_target - 10, N_alts); % [m]
-quantiles = linspace(0, 1, N_vels);
+maker_file = pfullfile("sim", "sim_const");
+vehicle_data = get_vehicle_data(doc);
+brake_data = get_brake_data("ideal");
+simin = structs2inputs(maker_file, vehicle_data);
+simin = structs2inputs(simin, brake_data);
 
-if generate_table
-    sim_file = pfullfile("sim", "sim_const");
-    vehicle_data = get_vehicle_data(doc);
-    inits.t_0 = 0;
-    inits.dt = 0.01;
-    inits.controller_rate = 1/inits.dt;
+alts = [5 10 20 50];
+vels = [5 10 21];
+num_alts = 20;
+num_vels = 10;
+altitudes = linspace(1200, apogee_target - 10, num_alts); % [m]
+quantile_ctrl = make_quantile_lut(simin, apogee_target, altitudes, num_vels);
 
-    simin = structs2inputs(sim_file, vehicle_data);
-    simin = structs2inputs(simin, inits);
-    simin = simin.setModelParameter(SimulationMode = "accelerator", FastRestart = "on");
-
-    % instead of (altitudes, velocities) because this is faster
-    extensions = zeros(N_vels, N_alts);
-
-    % find upper and lower bounds per altitude to 
-    [uppers, lowers] = find_reachable_states(simin, apogee_target, altitudes, 0);
-
-    for i_alt = 1:N_alts
-        alt = altitudes(i_alt);
-        lower = lowers(i_alt);
-        upper = uppers(i_alt);
-
-        simin = simin.setVariable(position_init = [0; alt]);
-        for i_quant = 1:N_vels
-            start = tic;
-
-            vvel = lower + (upper - lower) * quantiles(i_quant);
-            simin = simin.setVariable(velocity_init = [0; vvel]);
-            extensions(i_quant, i_alt) = find_extension(apogee_target, simin, quantiles(i_quant));
-
-            time = toc(start);
-            fprintf("Finished optimization %d of %d in %.2f sec\n", ...
-                i_quant + (i_alt - 1) * N_vels, N_alts * N_vels, time);
-        end
-    end
-
-    set_param(simin.ModelName, FastRestart = "off");
-
-    upper_lut = xarray(uppers, alt = altitudes);
-    lower_lut = xarray(lowers, alt = altitudes);
-    quant_lut = xarray(extensions, quant = quantiles, alt = altitudes);
-
-    luts.(sprintf("quant_%d_by_%d", N_vels, N_alts)) = quant_lut;
-    luts.("uppers_" + N_alts) = upper_lut;
-    luts.("lowers_" + N_alts) = lower_lut;
-else
-    quant_lut = luts.(sprintf("quant_%d_by_%d", N_vels, N_alts));
-    upper_lut = luts.("uppers_" + N_points);
-    lower_lut = luts.("lowers_" + N_points);
-end
-
-% lut_figure = figure(name = "Lookup table");
-% imagesc(lut, cmap = "parula", clabel = "Control effort [0-1]");
-% xlabel("Altitude");
-% xsecondarylabel("m AGL");
-% ylabel("Vertical velocity");
-% ysecondarylabel("m/s");
-%
-% export_at_size(lut_figure, "exhaustive_lut.pdf", [500 400]);
-%
 %% Test table
 sim_file = pfullfile("sim", "sim_controller");
-vehicle_data = get_vehicle_data(doc);
 data = doc.simulate(doc.sims(1), outputs = "ALL", stop = "APOGEE");
 inits = get_initial_data(data);
 inits.dt = 0.01;
@@ -81,11 +28,12 @@ inits.dt = 0.01;
 ctrl.control_mode = "quant";
 ctrl.observer_rate = 100;
 ctrl.controller_rate = 10;
-ctrl.upper_bound_lut = xarray2lut(upper_lut);
-ctrl.lower_bound_lut = xarray2lut(lower_lut);
-ctrl.quantile_lut = xarray2lut(quant_lut);
+ctrl.upper_bound_lut = xarray2lut(quantile_ctrl.upper_bound_lut);
+ctrl.lower_bound_lut = xarray2lut(quantile_ctrl.lower_bound_lut);
+ctrl.quantile_lut = xarray2lut(quantile_ctrl.quantile_lut);
 
 simin = structs2inputs(sim_file, vehicle_data);
+simin = structs2inputs(simin, get_brake_data("noisy"));
 simin = structs2inputs(simin, inits);
 simin = structs2inputs(simin, ctrl);
 

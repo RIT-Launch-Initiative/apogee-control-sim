@@ -1,48 +1,36 @@
 clear;
 project_globals;
-
 sim_file = pfullfile("sim", "sim_altimeter");
-observer_rate = 100; % [Hz]
-controller_rate = 10; % [Hz]
+params = get_brake_data("noisy");
+params.GROUND_LEVEL = doc.sims(1).getOptions().getLaunchAltitude();
 
-% use "low power" mode - pressure x2 temperature x1
-BARO_QUANT = 1.32; % [Pa]
-BARO_RMSN = 2.5; % [Pa]
-% BARO_QUANT = 1e-10; % [Pa]
-% BARO_RMSN = 0; % [Pa]
-GROUND_LEVEL = doc.sims(1).getOptions().getLaunchAltitude();
 
 data = doc.simulate(doc.sims(1), outputs = "ALL");
 position = data(:, ["Lateral distance", "Altitude"]);
 position = mergevars(position, ["Lateral distance", "Altitude"]);
 
-t_0 = seconds(data.Time(1));
-t_f = seconds(data.Time(end));
-dt = 1/observer_rate;
+params.t_0 = seconds(data.Time(1));
+params.t_f = seconds(data.Time(end));
+params.dt = 1/params.observer_rate;
 
-filter_order = 2;
-pos_cutoff = 20;
-vel_cutoff = 5;
-[pos_num, pos_den] = butter(filter_order, 2*pos_cutoff/observer_rate);
-[vel_num, vel_den] = butter(filter_order, 2*vel_cutoff/observer_rate);
-N_pos = observer_rate / controller_rate;
-N_vel = observer_rate / controller_rate;
+simin = structs2inputs(sim_file, params);
 
-simout = sim(sim_file);
+simout = sim(simin);
 logs = extractTimetable(simout.logsout);
 logs = fillmissing(logs, "previous");
 
 % modify SeriesIndex so that we can plot lines out-of-order to put the true
 % data in the middle but keep the default blue-red-yellow color order
 
+
+
+flt_figure = figure(name = "Filter performance summary");
+layout = tiledlayout(2,2);
+
 true_args = {"DisplayName", "True", "SeriesIndex", 1};
 meas_args = {"DisplayName", "Measured", "SeriesIndex", 3, "LineWidth", 0.25};
 est_args = {"DisplayName", "Estimated", "SeriesIndex", 2};
-
-figure;
-layout = tiledlayout(2,2);
-
-cols = colororder;
+lims = seconds([5 16]);
 
 % nexttile; hold on; grid on;
 % plot(data.Time, data.("Air pressure"), true_args{:});
@@ -68,7 +56,7 @@ ysecondarylabel("m/s");
 
 % sync for addition/subtraction
 compare_data = synchronize(data, logs, ...
-    "regular", "linear", SampleRate = observer_rate)
+    "regular", "linear", SampleRate = params.observer_rate);
 
 compare_ax = nexttile; hold on; grid on;
 stairs(compare_data.Time, compare_data.altitude_est - compare_data.("Altitude"));
@@ -80,5 +68,7 @@ ylabel("Estimation error");
 xlabel("Time");
 
 stack_axes(layout);
-xlim(data_ax, seconds([5 16]));
-xlim(compare_ax, seconds([5 16]));
+xlim(data_ax, lims);
+xlim(compare_ax, lims);
+
+export_at_size(flt_figure, "filter_response.pdf", [620 420]);

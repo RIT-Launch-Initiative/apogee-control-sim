@@ -4,7 +4,7 @@ function export_at_size(fig, name, sz)
     drawnow
     fig.Position(3:4) = sz;
 
-    exportgraphics(fig, pfullfile("data", name));
+    exportgraphics(fig, pfullfile("data", name), ContentType = "vector");
 
     % reset figure
     fig.WindowStyle = old_style;

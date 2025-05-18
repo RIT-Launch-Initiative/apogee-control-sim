@@ -73,6 +73,8 @@ regiondata = simdata(i_start:i_end, :);
 nexttile; grid on; hold on;
 plot(regiondata.Time, regiondata.("Vertical velocity"), "-", DisplayName = "Vertical");
 plot(regiondata.Time, regiondata.("Total velocity"), "--", DisplayName = "Total");
+ylabel("Velocity");
+ysecondarylabel("m/s");
 legend(Location = "northeast");
 
 nexttile; grid on; hold on;
