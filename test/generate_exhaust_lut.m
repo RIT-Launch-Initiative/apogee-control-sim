@@ -18,27 +18,24 @@ alt_end = apogee_target - 10;
 vel_start = 0;
 vel_end = 270;
 
-nums_alt = [20 20 50 50 100];
-nums_vel = [20 50 50 100 100];
-
-assert(length(nums_alt) == length(nums_vel));
-
-for i_set = 1:length(nums_alt)
-    num_alt = nums_alt(i_set);
-    num_vel = nums_vel(i_set);
-
+nums_alt = [20 50 100];
+nums_vel = [20 50 100];
+for i_alt = 3%1:length(nums_alt)
+    num_alt = nums_alt(i_alt);
     altitudes = linspace(alt_start, alt_end, num_alt);
-    velocities = linspace(vel_start, vel_end, num_vel);
 
-    exhaust_ctrl = make_exhaustive_lut(simin, apogee_target, altitudes, velocities);
-
-    target_name = sprintf("exhaust_%d_by_%d", length(velocities), length(altitudes));
-    figure(name = target_name);
-    imagesc(exhaust_ctrl.lut);
-    drawnow;
-
-    luts.(target_name) = exhaust_ctrl;
+    for i_vel = 2%1:length(nums_vel)
+        num_vel = nums_vel(i_vel);
+        velocities = linspace(vel_start, vel_end, num_vel);
+        exhaust_ctrl = make_exhaustive_lut(simin, apogee_target, altitudes, velocities);
+        target_name = sprintf("exhaust_%d_by_%d", length(velocities), length(altitudes));
+        figure(name = target_name);
+        imagesc(exhaust_ctrl.lut);
+        drawnow;
+        luts.(target_name) = exhaust_ctrl;
+    end
 end
+
 
 % altitudes = linspace(1200, apogee_target - 10, N_points); % [m]
 % velocities = linspace(0, 270, N_points); % [m/s]

@@ -18,7 +18,6 @@ function data = get_brake_data(mode)
             vel_cutoff = 5;
             [data.pos_num, data.pos_den] = butter(filter_order, 2*pos_cutoff/data.observer_rate);
             [data.vel_num, data.vel_den] = butter(filter_order, 2*vel_cutoff/data.observer_rate);
-            data.N_pos = data.observer_rate / data.controller_rate;
             data.N_vel = data.observer_rate / data.controller_rate;
         case "ideal"
             data.SERVO_TC = 1e-6; % [s]
@@ -30,7 +29,6 @@ function data = get_brake_data(mode)
             data.pos_den = 1;
             data.vel_num = 1; 
             data.vel_den = 1;
-            data.N_pos = 1;
             data.N_vel = 1;
     end
 end

@@ -9,7 +9,6 @@ ctrl.control_mode = "const";
 ctrl.const_brake = 0;
 ctrl.controller_rate = 1/inits.dt;
 
-
 simin = structs2inputs(sim_file, vehicle_data);
 simin = structs2inputs(simin, inits);
 simin = structs2inputs(simin, ctrl);

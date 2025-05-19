@@ -6,8 +6,8 @@
 %   data    (struct)        structure with fields MASS_DRY, etc. required by sim_2dof
 
 function [data] = get_vehicle_data(doc)
-    [~, data.MASS_DRY, inertia] = doc.massdata("BURNOUT");
-    data.PITCH_INERTIA = inertia(2);
+    [~, data.MASS_DRY, ~] = doc.massdata("BURNOUT");
+    % data.PITCH_INERTIA = inertia(2);
     [~, data.REF_AREA] = doc.refdims();
 
     % drag lookup table using aerodata3()

@@ -25,8 +25,9 @@ pos_cutoff = 20;
 vel_cutoff = 5;
 [pos_num, pos_den] = butter(filter_order, 2*pos_cutoff/observer_rate);
 [vel_num, vel_den] = butter(filter_order, 2*vel_cutoff/observer_rate);
-N_pos = observer_rate / controller_rate;
+% N_pos = observer_rate / controller_rate;
 N_vel = observer_rate / controller_rate;
+N_vel = 1;
 
 simout = sim(sim_file);
 logs = extractTimetable(simout.logsout);
