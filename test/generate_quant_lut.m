@@ -7,7 +7,7 @@ project_globals;
 %% LUT RANGES
 
 maker_file = pfullfile("sim", "sim_const");
-vehicle_data = get_vehicle_data(doc);
+vehicle_data = vehicle_params(doc);
 brake_data = get_brake_data("ideal");
 simin = structs2inputs(maker_file, vehicle_data);
 simin = structs2inputs(simin, brake_data);

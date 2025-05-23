@@ -2,7 +2,7 @@ clear;
 project_globals;
 
 simdata = doc.simulate(doc.sims(1), outputs = "ALL", stop = "APOGEE");
-vehicle_data = get_vehicle_data(doc);
+vehicle_data = vehicle_params(doc);
 inits = get_initial_data(simdata);
 inits.dt = 0.01;
 ctrl.control_mode = "const";

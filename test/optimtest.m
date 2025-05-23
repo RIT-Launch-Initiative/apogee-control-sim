@@ -3,7 +3,7 @@ clear;
 project_globals;
 % configure simulation
 sim_file = pfullfile("sim", "sim_const"); % more efficient sim for 
-vehicle_data = get_vehicle_data(doc);
+vehicle_data = vehicle_params(doc);
 data = doc.simulate(doc.sims(1), outputs = "ALL", stop = "BURNOUT");
 inits = get_initial_data(data);
 

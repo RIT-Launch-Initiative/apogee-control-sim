@@ -3,7 +3,7 @@ project_globals;
 drag_fraction = 0.9;
 
 simdata = doc.simulate(doc.sims(1), outputs = "ALL", stop = "APOGEE");
-vehicle_data = get_vehicle_data(doc);
+vehicle_data = vehicle_params(doc);
 inits = get_initial_data(simdata);
 brake_data = get_brake_data("ideal");
 brake_data.const_brake = 1;
