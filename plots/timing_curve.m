@@ -38,5 +38,5 @@ ylabel("Apogee reduction");
 ysecondarylabel("m");
 
 fontsize(timing_figure, 9, "points");
-export_at_size(timing_figure, "airbrake_timing.pdf", [420 250]);
+export_sized(timing_figure, "airbrake_timing.pdf", [420 250]);
 

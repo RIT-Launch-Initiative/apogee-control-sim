@@ -1,4 +1,9 @@
-function export_at_size(fig, name, sz)
+function export_sized(fig, name, sz)
+    arguments
+        fig;
+        name (1,1) string;
+        sz (1,2) double;
+    end
     old_style = fig.WindowStyle;
     fig.WindowStyle = "normal";
     drawnow
