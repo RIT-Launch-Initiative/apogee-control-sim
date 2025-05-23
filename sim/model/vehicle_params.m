@@ -16,7 +16,8 @@ function [params] = vehicle_params(mode)
             % constants
             machs = [linspace(0, 1, 100)]';
             efforts = linspace(0, 1, 20); 
-            plate_cd = 0;
+            plate_cd = 1.2;
+            plate_num = 2;
             plate_width = 9e-2; % [m]
             plate_length = 4e-2; % [m]
 
@@ -51,7 +52,7 @@ function [params] = vehicle_params(mode)
             assert(isrow(efforts));
             
             % airbrake contribution
-            plate_drag = (plate_cd * plate_width * plate_length) .* efforts;
+            plate_drag = (plate_num * plate_cd * plate_width * plate_length) .* efforts;
             
             % total drag area (S*C_D) for all M by N points
             drag_values = plate_drag + params.REF_AREA .* rocket_drag;
