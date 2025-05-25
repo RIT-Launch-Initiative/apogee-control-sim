@@ -71,4 +71,4 @@ stack_axes(layout);
 xlim(data_ax, lims);
 xlim(compare_ax, lims);
 
-export_sized(flt_figure, "filter_response.pdf", [620 420]);
+fig2pdfsize(flt_figure, "filter_response.pdf", [620 420]);

@@ -84,5 +84,5 @@ xlabel("Time");
 stack_axes(layout);
 
 fontsize(9, "points");
-export_sized(roi_figure, "roi.pdf", [600 600]);
+fig2pdfsize(roi_figure, "roi.pdf", [600 600]);
 return;

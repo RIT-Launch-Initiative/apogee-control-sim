@@ -39,4 +39,4 @@ ysecondarylabel("m");
 
 
 
-export_sized(effort_figure, "effort_curve.pdf", [420 250]);
+fig2pdfsize(effort_figure, "effort_curve.pdf", [420 250]);

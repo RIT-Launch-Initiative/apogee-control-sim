@@ -1,4 +1,4 @@
-function export_sized(fig, name, sz)
+function fig2pdfsize(fig, name, sz)
     arguments
         fig;
         name (1,1) string;
