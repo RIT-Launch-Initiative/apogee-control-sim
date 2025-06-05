@@ -1,28 +1,44 @@
-function params = make_exhaustive_lut(simin, target, altitudes, velocities)
+function params = make_exhaustive_lut(simin, target, altitudes, velocities, opts)
+    arguments
+        simin (1,1) Simulink.SimulationInput;
+        target (1,1) double;
+        altitudes (1,:) double;
+        velocities (1,:) double;
+        opts.bounds (1,1) struct = struct;
+    end
     simin = simin.setVariable(t_0 = 0);
     simin = simin.setModelParameter(SimulationMode = "accelerator", FastRestart = "on");
 
     [initial_velocities, initial_altitudes] = ndgrid(velocities, altitudes); 
     extensions = zeros(size(initial_altitudes));
 
-    % find upper and lower bounds per altitude to 
-    [uppers, lowers] = find_reachable_states(simin, target, altitudes, 0);
+    % find upper and lower bounds per altitude to cull search
+    if ~isfield(opts.bounds, "uppers") || ~isfield(opts.bounds, "lowers");
+        [uppers, lowers] = find_reachable_states(simin, target, altitudes, 0);
+        uppers = xarray(uppers, alt = altitudes);
+        lowers = xarray(lowers, alt = altitudes);
+    else
+        uppers = opts.bounds.uppers;
+        lowers = opts.bounds.lowers;
+    end
+    
 
     for i_sim = 1:numel(extensions)
         start = tic;
 
         alt = initial_altitudes(i_sim);
         vvel = initial_velocities(i_sim);
-        % default values for states that can't reach apogee target
-        % use (altitude == alt) instead of i_sim because uppers() and lowers() are 1xN_alt rows
-        if (vvel >= uppers(altitudes == alt))
+
+        % trivial values for states that can't reach apogee target
+        if (vvel >= double(uppers.interp(alt = alt)))
             extensions(i_sim) = 1;
             continue;
-        elseif (vvel <= lowers(altitudes == alt))
+        elseif (vvel <= double(lowers.interp(alt = alt)))
             extensions(i_sim) = 0;
             continue;
         end
 
+        % nontrivial values here
         simin = simin.setVariable(position_init = [0; alt]);
         simin = simin.setVariable(velocity_init = [0; vvel]);
 

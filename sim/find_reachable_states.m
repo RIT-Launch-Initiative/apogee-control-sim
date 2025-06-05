@@ -24,7 +24,9 @@ function [uppers, lowers] = find_reachable_states(simin, target, altitudes, init
     baseline_vvel = fzero(@minvelfunc, opts.vvel_guess, fzero_opts);
     [~, baseline_out] = minvelfunc(baseline_vvel); % re-run to get full output
     baseline_out = extractTimetable(baseline_out.logsout);
-    hvels = interp1(baseline_out.position(1:end-1, 2), baseline_out.velocity(1:end-1,1), altitudes, "linear", NaN);
+    hvel_map = griddedInterpolant(baseline_out.position(1:end-1, 2), ...
+        baseline_out.velocity(1:end-1,1), "linear", "linear");
+    hvels = hvel_map(altitudes);
     if any(isnan(hvels))
         error("Some altitude inputs are out-of-bounds.");
     end

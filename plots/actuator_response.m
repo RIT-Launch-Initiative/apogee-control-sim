@@ -15,4 +15,4 @@ xlabel("Time");
 legend;
 
 
-fig2pdfsize(act_figure, "actuator_response.pdf", [500 220]);
+print2size(act_figure, "actuator_response.pdf", [500 220]);

@@ -96,7 +96,7 @@ for i_simout = 1:length(simouts)
         DisplayName = names(i_simout), SeriesIndex = i_simout);
 end
 
-fig2pdfsize(exhaust_test_fig, "exhaust_tests.pdf", [420 530]);
+print2size(exhaust_test_fig, "exhaust_tests.pdf", [420 530]);
 
 
 

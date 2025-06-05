@@ -2,12 +2,13 @@ clear;
 project_globals;
 
 sim_file = pfullfile("sim", "sim_altimeter");
-observer_rate = 100; % [Hz]
-controller_rate = 10; % [Hz]
+input_rate = 100; % [Hz]
+output_rate = 10; % [Hz]
 
 % use "low power" mode - pressure x2 temperature x1
-BARO_QUANT = 1.32; % [Pa]
-BARO_RMSN = 2.5; % [Pa]
+BARO_LSB = 1.32; % [Pa]
+BARO_COV = 2.5^2; % [Pa]
+BARO_RATE = input_rate
 % BARO_QUANT = 1e-10; % [Pa]
 % BARO_RMSN = 0; % [Pa]
 GROUND_LEVEL = doc.sims(1).getOptions().getLaunchAltitude();
@@ -18,15 +19,15 @@ position = mergevars(position, ["Lateral distance", "Altitude"]);
 
 t_0 = seconds(data.Time(1));
 t_f = seconds(data.Time(end));
-dt = 1/observer_rate;
+dt = 1/input_rate;
 
 filter_order = 4;
 pos_cutoff = 20;
 vel_cutoff = 10;
-[pos_num, pos_den] = butter(filter_order, 2*pos_cutoff/observer_rate);
-[vel_num, vel_den] = butter(filter_order, 2*vel_cutoff/observer_rate);
-% N_pos = observer_rate / controller_rate;
-N_vel = observer_rate / controller_rate;
+[pos_num, pos_den] = butter(filter_order, 2*pos_cutoff/input_rate);
+[vel_num, vel_den] = butter(filter_order, 2*vel_cutoff/input_rate);
+% N_pos = input_rate / output_rate;
+vel_avg = input_rate / output_rate;
 % N_vel = 1;
 
 simout = sim(sim_file);
@@ -69,7 +70,7 @@ ysecondarylabel("m/s");
 
 % sync for addition/subtraction
 compare_data = synchronize(data, logs, ...
-    "regular", "linear", SampleRate = observer_rate)
+    "regular", "linear", SampleRate = input_rate)
 
 compare_ax = nexttile; hold on; grid on;
 stairs(compare_data.Time, compare_data.altitude_est - compare_data.("Altitude"));

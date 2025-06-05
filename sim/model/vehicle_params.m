@@ -14,7 +14,7 @@ function [params] = vehicle_params(mode)
     switch mode
         case "openrocket"
             % constants
-            machs = [linspace(0, 1, 100)]';
+            machs = [linspace(0, 1.5, 100)]';
             efforts = linspace(0, 1, 20); 
             plate_cd = 1.2;
             plate_num = 2;
@@ -59,11 +59,15 @@ function [params] = vehicle_params(mode)
             
             % convert to C_D dividing by S_R
             cd_values = drag_values ./ params.REF_AREA;
-            % sure this is multiplied later by REF_AREA, but C_D is conventionally normalized using a reference area
+            % sure this is multiplied later by REF_AREA, but C_D is
+            % conventionally normalized using a reference area
 
             % assign to output structure
             params.cd_array = xarray(cd_values, mach = machs, effort = efforts);
             params.DRAG_LUT = xarray2lut(params.cd_array, ["mach", "effort"]);
+
+            params.SERVO_TC = 0.1;
+            params.SERVO_BL = 0.01;
         otherwise
             error("Unrecognized mode '%s'", mode)
     end

@@ -1,4 +1,4 @@
-function params = alt_filter_params(mode)
+function params = accel_filter_params(mode)
     arguments 
         mode (1,1) string
     end
