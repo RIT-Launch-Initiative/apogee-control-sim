@@ -2,8 +2,6 @@ clear;
 
 project_globals;
 
-cache_path = pfullfile("data", "lutdata");
-cache = matfile(cache_path, Writable = true);
 const_sim_path = pfullfile("sim", "sim_const");
 altitudes = linspace(1200, apogee_target, 100);
 make_bounds = false;

@@ -5,13 +5,13 @@
 %   axes    (string)    Input order - same names as axes in xarray, which must be numeric
 % Outputs
 %   lut     (Simulink.LookupTable)
-function lut = xarray2lut(xarr, axes)
+function lut = xarray2lut(xarr, axes, unname)
     arguments
         xarr xarray 
         axes (1,:) string;
+        unname (1,1) string = ""
     end
     lut = Simulink.LookupTable;
-    tol = 1e-10; % tolerance for converting explicit to even-spacing breakpoints
 
     xarr = squeeze(xarr); % get rid of 1D dimensions
     xarr = xarr.align(axes); % bring lookup dimensions forward in the order requried
@@ -31,5 +31,8 @@ function lut = xarray2lut(xarr, axes)
     lut.Table.Value = double(xarr);
 
     % needs unique name for code generation
-    lut.StructTypeInfo.Name = sprintf("LUT_%s_%lx", join(axes, "_"), keyHash(xarr));
+    if unname == ""
+        unname = sprintf("%lx", keyHash(xarr));
+    end
+    lut.StructTypeInfo.Name = sprintf("LUT_%s_%s", join(axes, "_"), unname);
 end
