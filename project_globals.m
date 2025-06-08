@@ -9,6 +9,12 @@ luts_file = pfullfile("data", "lutdata.mat");
 % Cache for large Monte Carlo runs
 runs_file = pfullfile("data", "rundata.mat");
 
+% 
+graphics_path = pfullfile("refs", "report", "assets");
+if ~isfolder(graphics_path)
+    graphics_path = pfullfile("plots");
+end
+
 % Create objects from names and paths
 doc = openrocket(rkt_file);
 orksim = doc.sims(sim_name);

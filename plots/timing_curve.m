@@ -1,30 +1,29 @@
+clear;
 project_globals;
 
 drag_fraction = 0.9;
-
-simdata = doc.simulate(doc.sims(1), outputs = "ALL", stop = "APOGEE");
-vehicle_data = vehicle_params(doc);
+simdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE");
+vehicle_data = vehicle_params("openrocket");
 inits = get_initial_data(simdata);
-brake_data = get_brake_data("ideal");
 brake_data.const_brake = 1;
 brake_data.brake_on = inits.t_0;
 
-sim_file = pfullfile("sim", "sim_on_off");
+sim_file = pfullfile("sim", "sim_const");
 simin = structs2inputs(sim_file, vehicle_data);
 simin = structs2inputs(simin, brake_data);
 simin = structs2inputs(simin, inits);
-simin = simin.setModelParameter(FastRestart = "on", SimulationMode = "accelerator");
+simin = simin.setModelParameter(SimulationMode = "accelerator");
 
 inputs = table;
 inputs.brake_off = inits.t_0 + (3:0.5:17)';
 
 cases = table2inputs(simin, inputs);
-outputs = sim(cases);
+% FastRestart here instead of the SimulationInput for multi-input simulation
+outputs = sim(cases, UseFastRestart = "on"); 
+
 reductions = max(simdata.Altitude) - [outputs.apogee];
 most_reduction = drag_fraction * max(reductions);
 time_to_fraction = interp1(reductions, inputs.brake_off, most_reduction);
-
-set_param(simin.ModelName, FastRestart = "off");
 
 timing_figure = figure(name = "Airbrake timing");
 hold on; grid on;
@@ -38,5 +37,5 @@ ylabel("Apogee reduction");
 ysecondarylabel("m");
 
 fontsize(timing_figure, 9, "points");
-print2size(timing_figure, "airbrake_timing.pdf", [420 250]);
+print2size(timing_figure, fullfile(graphics_path, "airbrake_timing.pdf"), [420 250], "pixels");
 
