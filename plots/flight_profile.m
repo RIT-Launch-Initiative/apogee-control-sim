@@ -1,15 +1,10 @@
 clear;
 project_globals;
-flight_data = imports.primary_data;
-drg_time = flight_data(eventfilter("DROGUE"), :).Time;
-ascent_data = flight_data(timerange(seconds(-Inf), drg_time), :);
 
-
-peak_velocity = 0.8 * 334; % [m/s] first time we can start extending
+peak_velocity = 270; % [m/s] first time we can start extending
 drag_fraction = 0.90; % [-] fraction we consider "almost all" of the drag
 
-orsim = doc.sims(1);
-simdata = doc.simulate(orsim, outputs = "ALL", stop = "APOGEE");
+simdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE");
 simdata = simdata(timerange(eventfilter("LAUNCHROD"), eventfilter("APOGEE")), :);
 
 i_start = find(simdata.("Total velocity") >= peak_velocity, 1, "last");
@@ -20,23 +15,6 @@ i_end = find((energy_removed - energy_removed(i_start)) <= ...
     drag_fraction * (energy_removed(end) - energy_removed(i_start)), 1, "last");
 
 %% Plots
-% fd_figure = figure(name = "Measured flight data");
-% layout = tiledlayout("vertical");
-%
-% nexttile; grid on; hold on;
-% plot(ascent_data, "Altitude");
-% ylabel("Altitude");
-% ysecondarylabel("m AGL");
-%
-% nexttile; grid on; hold on;
-% plot(ascent_data, "Velocity")
-% ylabel("Vertical velocity");
-% ysecondarylabel("m/s");
-%
-% stack_axes(layout);
-%
-% export_at_size(fd_figure, "flight_data.pdf", [500 340]);
-
 roi_figure = figure(name = "Time region of interest");
 layout = tiledlayout("vertical");
 
@@ -83,6 +61,4 @@ ysecondarylabel("m AGL");
 xlabel("Time");
 stack_axes(layout);
 
-fontsize(9, "points");
-fig2pdfsize(roi_figure, "roi.pdf", [600 600]);
-return;
+print2size(roi_figure, fullfile(graphics_path, "roi.pdf"), [700 900]);

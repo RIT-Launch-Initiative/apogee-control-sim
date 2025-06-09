@@ -1,17 +1,18 @@
 clear;
 project_globals;
+
 sim_file = pfullfile("sim", "sim_altimeter");
 baro_p = baro_params("bmp388");
-baro_p.GROUND_LEVEL = doc.sims(1).getOptions().getLaunchAltitude();
+baro_p.GROUND_LEVEL = orkopts.getLaunchAltitude();
 filter_p = alt_filter_params("designed");
 
-orkdata = doc.simulate(doc.sims(1), outputs = "ALL");
+orkdata = doc.simulate(orksim, outputs = "ALL");
 position = mergevars(orkdata(:, ["Lateral distance", "Altitude"]), ...
     ["Lateral distance", "Altitude"]);
 
-inputs.position = position;
-inputs.t_0 = seconds(orkdata.Time(1));
+inputs = get_initial_data(orkdata);
 inputs.t_f = seconds(orkdata.Time(end));
+inputs.position = position;
 inputs.dt = 1/filter_p.input_rate;
 
 simin = structs2inputs(sim_file, inputs);
@@ -24,8 +25,6 @@ logs = fillmissing(logs, "previous");
 
 % modify SeriesIndex so that we can plot lines out-of-order to put the true
 % orkdata in the middle but keep the default blue-red-yellow color order
-
-
 
 flt_figure = figure(name = "Filter performance summary");
 layout = tiledlayout(2,2);
@@ -74,4 +73,4 @@ stack_axes(layout);
 xlim(data_ax, lims);
 xlim(compare_ax, lims);
 
-print2size(flt_figure, "filter_response.pdf", [620 420]);
+print2size(flt_figure, fullfile(graphics_path, "filter_response.pdf"), [900 670]);

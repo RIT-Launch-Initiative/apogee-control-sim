@@ -63,6 +63,8 @@ function [params] = vehicle_params(mode)
             % conventionally normalized using a reference area
 
             % assign to output structure
+            % provide both the Simulink LUT and the raw Xarray so that it can be modified if required
+            params.plate_drag_area = plate_drag(end);
             params.cd_array = xarray(cd_values, mach = machs, effort = efforts);
             params.DRAG_LUT = xarray2lut(params.cd_array, ["mach", "effort"]);
 

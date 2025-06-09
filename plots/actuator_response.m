@@ -1,7 +1,8 @@
 clear;
+project_globals;
 
 sim_path = pfullfile("sim", "sim_actuator");
-params = get_brake_data("noisy");
+params = vehicle_params("openrocket"); % this includes actuator dynamics
 simin = structs2inputs(sim_path, params);
 simout = sim(simin);
 logs = extractTimetable(simout.logsout);
@@ -15,4 +16,4 @@ xlabel("Time");
 legend;
 
 
-print2size(act_figure, "actuator_response.pdf", [500 220]);
+print2size(act_figure, fullfile(graphics_path, "actuator_response.pdf"), [800 350]);
