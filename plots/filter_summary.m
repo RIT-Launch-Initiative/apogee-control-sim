@@ -1,76 +1,92 @@
 clear;
 project_globals;
 
-sim_file = pfullfile("sim", "sim_altimeter");
+roi = timerange(seconds(5.2), seconds(12.5));
+
+alt_path = pfullfile("sim", "sim_altimeter");
+kalm_path = pfullfile("sim", "sim_kalman");
+
+% get raw data from OpenRocket
+% orkopts.setWindSpeedDeviation(0);
+orkdata = doc.simulate(orksim, stop = "APOGEE", outputs = "ALL");
+% join to N-by-2 for Simulink input
+orkdata = mergevars(orkdata, ["Lateral acceleration", "Vertical acceleration"], ...
+    NewVariableName = "accel_fixed");
+orkdata = mergevars(orkdata, ["Lateral distance", "Altitude"], ...
+    NewVariableName = "position");
+
+config.t_0 = seconds(orkdata.Time(1));
+config.t_f = seconds(orkdata.Time(end));
+config.dt = 1/100;
+config.GROUND_LEVEL = orkopts.getLaunchAltitude();
+config.GRAVITY = orkdata{1, "Gravitational acceleration"};
+
 baro_p = baro_params("bmp388");
-baro_p.GROUND_LEVEL = orkopts.getLaunchAltitude();
-filter_p = alt_filter_params("designed");
+accel_p = accel_params("lsm6dsl");
+inputs.position = orkdata(:, "position");
+inputs.position_init = orkdata{1, "position"}';
+inputs.velocity_init = orkdata{1, ["Lateral velocity", "Vertical velocity"]}';
+inputs.accel = orkdata(:, "accel_fixed");
+inputs.pitch = orkdata(:, "Vertical orientation (zenith)");
 
-orkdata = doc.simulate(orksim, outputs = "ALL");
-position = mergevars(orkdata(:, ["Lateral distance", "Altitude"]), ...
-    ["Lateral distance", "Altitude"]);
+simin_lowpass = structs2inputs(alt_path, config, inputs, baro_p);
+simin_lowpass = structs2inputs(simin_lowpass, alt_filter_params("designed"));
 
-inputs = get_initial_data(orkdata);
-inputs.t_f = seconds(orkdata.Time(end));
-inputs.position = position;
-inputs.dt = 1/filter_p.input_rate;
+simin_kalm_bias = structs2inputs(kalm_path, config, inputs, baro_p, accel_p);
+simin_kalm_bias = structs2inputs(simin_kalm_bias, kalman_filter_params("accel-bias"));
 
-simin = structs2inputs(sim_file, inputs);
-simin = structs2inputs(simin, baro_p);
-simin = structs2inputs(simin, filter_p);
 
-simout = sim(simin);
-logs = extractTimetable(simout.logsout);
-logs = fillmissing(logs, "previous");
+% simin_lowpass = structs2inputs(simin_lowpass, inputs);
+% simin_lowpass = structs2inputs(simin_lowpass, inputs);
 
-% modify SeriesIndex so that we can plot lines out-of-order to put the true
-% orkdata in the middle but keep the default blue-red-yellow color order
+% simin_kalman = kalman_filter_params()
+% simin = structs2inputs)
 
-flt_figure = figure(name = "Filter performance summary");
-layout = tiledlayout(2,2);
+filters(1).simin = simin_lowpass;
+filters(1).label = "Low-pass";
 
-true_args = {"DisplayName", "True", "SeriesIndex", 1};
-meas_args = {"DisplayName", "Measured", "SeriesIndex", 3, "LineWidth", 0.25};
-est_args = {"DisplayName", "Estimated", "SeriesIndex", 2};
-lims = seconds([5 16]);
+filters(2).simin = simin_kalm_bias;
+filters(2).label = "Kalman (bias)";
 
-% nexttile; hold on; grid on;
-% plot(orkdata.Time, orkdata.("Air pressure"), true_args{:});
-% stairs(logs.Time, logs.pressure_meas, meas_args{:});
-% legend;
+figure(name = "Estimator errors");
+layout = tiledlayout("vertical");
+layout.TileSpacing = "tight";
 
-data_ax = nexttile; hold on; grid on;
-stairs(logs.Time, logs.altitude_meas, meas_args{:});
-plot(orkdata.Time, orkdata.Altitude, true_args{:});
-stairs(logs.Time, logs.altitude_est, est_args{:});
-ylabel("Altitude");
-ysecondarylabel("m AGL");
+alt_ax = nexttile; hold on; grid on;
+yline(0, "-k", HandleVisibility = "off");
+legend;
+ylabel("Altitude error");
+ysecondarylabel("m");
 
-nexttile; hold on; grid on;
-stairs(logs.Time, logs.velocity_meas, meas_args{:});
-plot(orkdata.Time, orkdata.("Vertical velocity"), true_args{:});
-stairs(logs.Time, logs.velocity_est, est_args{:});
-lgn = legend(Orientation = "horizontal");
-lgn.Layout.Tile = "north";
-xlabel("Time");
-ylabel("Vertical velocity");
+vel_ax = nexttile; hold on; grid on;
+yline(0, "-k", HandleVisibility = "off");
+legend;
+ylabel("Velocity error");
 ysecondarylabel("m/s");
 
-% sync for addition/subtraction
-compare_data = synchronize(orkdata, logs, ...
-    "regular", "linear", SampleRate = filter_p.output_rate);
 
-compare_ax = nexttile; hold on; grid on;
-stairs(compare_data.Time, compare_data.altitude_est - compare_data.("Altitude"));
-ylabel("Estimation error");
+for i_filter = 1:length(filters)
+    simout = sim(filters(i_filter).simin);
+    logs = extractTimetable(simout.logsout);
+    compare = synchronize(orkdata, logs, "regular", "linear", ...
+        SampleRate = logs.Properties.SampleRate);
+    compare = compare(roi, :);
+    
+    compare.alt_err = compare.altitude_est - compare.position(:,2);
+    alt_label = sprintf("%s: \\mu = %+.2f m | \\sigma = %.2f m", ...
+        filters(i_filter).label, mean(compare.alt_err), std(compare.alt_err));
+    compare.vel_err = compare.velocity_est - compare.("Vertical velocity");
+    vel_label = sprintf("%s: \\mu = %+.2f m/s | \\sigma = %.2f m/s", ...
+        filters(i_filter).label, mean(compare.vel_err), std(compare.vel_err));
 
-nexttile; hold on; grid on;
-stairs(compare_data.Time, compare_data.velocity_est - compare_data.("Vertical velocity"));
-ylabel("Estimation error");
-xlabel("Time");
+    plot(alt_ax, compare.Time, compare.alt_err, DisplayName = alt_label, SeriesIndex = i_filter);
+    plot(vel_ax, compare.Time, compare.vel_err, DisplayName = vel_label, SeriesIndex = i_filter);
+end
 
-stack_axes(layout);
-xlim(data_ax, lims);
-xlim(compare_ax, lims);
+alt_range = max(alt_ax.YLim, [], ComparisonMethod = "abs");
+alt_ax.YLim = abs(alt_range) * [-1 1];
+vel_range = max(vel_ax.YLim, [], ComparisonMethod = "abs");
+vel_ax.YLim = abs(vel_range) * [-1 1];
 
-print2size(flt_figure, fullfile(graphics_path, "filter_response.pdf"), [900 670]);
+linkaxes(layout.Children, "x");
+xlabel(layout, "Time");
