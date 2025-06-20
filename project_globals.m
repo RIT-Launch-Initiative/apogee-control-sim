@@ -9,7 +9,7 @@ luts_file = pfullfile("data", "lutdata.mat");
 % Cache for large Monte Carlo runs
 runs_file = pfullfile("data", "rundata.mat");
 
-% 
+% where plots go by default
 graphics_path = pfullfile("refs", "report", "assets");
 if ~isfolder(graphics_path)
     graphics_path = pfullfile("plots");
@@ -22,7 +22,7 @@ orkopts = orksim.getOptions();
 luts = matfile(luts_file, Writable = true);
 runs = matfile(runs_file, Writable = true); 
 
-% Magic numbers
+%% Magic numbers
 vel_max = 270; % [m/s] approximate velocity for 0.8Ma
 alt_start = 1200; % [m] approximate altitude at which rocket falls below 0.8Ma
 apogee_target = 3300; % [m] altitude we are targeting
