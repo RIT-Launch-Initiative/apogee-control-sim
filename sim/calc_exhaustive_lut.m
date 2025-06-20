@@ -1,4 +1,4 @@
-function params = make_exhaustive_lut(simin, target, altitudes, velocities, opts)
+function params = calc_exhaustive_lut(simin, target, altitudes, velocities, opts)
     arguments
         simin (1,1) Simulink.SimulationInput;
         target (1,1) double;
@@ -14,7 +14,7 @@ function params = make_exhaustive_lut(simin, target, altitudes, velocities, opts
 
     % find upper and lower bounds per altitude to cull search
     if ~isfield(opts.bounds, "uppers") || ~isfield(opts.bounds, "lowers");
-        [uppers, lowers] = find_reachable_states(simin, target, altitudes, 0);
+        [uppers, lowers] = calc_bounds(simin, target, altitudes, 0);
         uppers = xarray(uppers, alt = altitudes);
         lowers = xarray(lowers, alt = altitudes);
     else
@@ -42,7 +42,7 @@ function params = make_exhaustive_lut(simin, target, altitudes, velocities, opts
         simin = simin.setVariable(position_init = [0; alt]);
         simin = simin.setVariable(velocity_init = [0; vvel]);
 
-        extensions(i_sim) = find_extension(target, simin);
+        extensions(i_sim) = calc_extension(target, simin);
         time = toc(start);
 
         fprintf("Finished optimization %d of %d in %.2f sec\n", i_sim, numel(extensions), time);

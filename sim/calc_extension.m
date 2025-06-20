@@ -1,4 +1,4 @@
-function ext = find_extension(target, simin)
+function ext = calc_extension(target, simin)
     % set up optimization
     tol = 1; % [m]
     iters_left = 100;

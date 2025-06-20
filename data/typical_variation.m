@@ -1,7 +1,7 @@
 clear;
 project_globals;
 
-num_samples = 1000;
+num_samples = 50;
 stored_vars = ["Lateral distance", "Altitude", ...
     "Lateral velocity", "Vertical velocity"];
 

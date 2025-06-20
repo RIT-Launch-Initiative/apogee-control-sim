@@ -1,4 +1,4 @@
-function params = make_quantile_lut(simin, target, altitudes, num_velocities)
+function params = calc_quantile_lut(simin, target, altitudes, num_velocities)
     quantiles = linspace(0, 1, num_velocities);
     simin = simin.setVariable(t_0 = 0);
     simin = simin.setModelParameter(SimulationMode = "accelerator", FastRestart = "on");
@@ -6,7 +6,7 @@ function params = make_quantile_lut(simin, target, altitudes, num_velocities)
     extensions = zeros(num_velocities, length(altitudes));
 
     % find upper and lower bounds per altitude to 
-    [uppers, lowers] = find_reachable_states(simin, target, altitudes, 0);
+    [uppers, lowers] = calc_bounds(simin, target, altitudes, 0);
 
     for i_alt = 1:length(altitudes)
         alt = altitudes(i_alt);
@@ -19,7 +19,7 @@ function params = make_quantile_lut(simin, target, altitudes, num_velocities)
 
             vvel = lower + (upper - lower) * quantiles(i_quant);
             simin = simin.setVariable(velocity_init = [0; vvel]);
-            extensions(i_quant, i_alt) = find_extension(target, simin);
+            extensions(i_quant, i_alt) = calc_extension(target, simin);
 
             time = toc(start);
             fprintf("Finished optimization %d of %d in %.2f sec\n", ...

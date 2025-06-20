@@ -24,7 +24,7 @@ target_apogee = 0.8 * (simout_off.apogee - simout_on.apogee) + simout_on.apogee;
 tic;
 % set up for rapid re-simulation
 simin = simin.setModelParameter(FastRestart = "on", SimulationMode = "accelerator");
-ext = find_extension(target_apogee, simin);
+ext = calc_extension(target_apogee, simin);
 time = toc;
 
 fprintf("Finished optimization in %.2f sec\n", time);

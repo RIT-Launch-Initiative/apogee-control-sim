@@ -21,6 +21,7 @@ inits.dt = 1/100;
 
 % set up constant extension of 0
 ctrl.control_mode = "const"; % for sim_controller
+ctrl.filter_mode = "through";
 ctrl.const_brake = 0;
 ctrl.brake_on = 0;
 ctrl.brake_off = 100; % arbitrary large value

@@ -11,7 +11,7 @@ filt_under_test = "kalman";
 ctrl_under_test = "quantile_effort";
 % ctrl_under_test = "quantile_tracking";
 
-cases = runs.ork_100;
+cases = runs.ork_50;
 % cases = cases(1:10, :);
 
 simin = Simulink.SimulationInput("sim_controller");

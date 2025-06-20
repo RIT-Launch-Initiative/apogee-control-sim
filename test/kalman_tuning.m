@@ -7,7 +7,7 @@ accel_p.GRAVITY = 9.81;
 kalm_p = kalman_filter_params("accel-bias");
 
 kalm_p.kalm_meas_cov = diag([100, 8e-4]);
-kalm_p.kalm_process_cov = diag([0.01 0.01 20 1]);
+kalm_p.kalm_process_cov = diag([0.01 0.01 20 1e-10]);
 
 orksim = doc.sims("MATLAB");
 simopts = orksim.getOptions();

@@ -13,7 +13,7 @@ for i_alt = 1:length(nums_alt)
         velocities = linspace(0, vel_max, num_vel);
         target_name = sprintf(name_fmt, num_vel, num_alt);
 
-        exhaust_ctrl = make_exhaustive_lut(const_simin, apogee_target, altitudes, velocities, ...
+        exhaust_ctrl = calc_exhaustive_lut(const_simin, apogee_target, altitudes, velocities, ...
             bounds = bounds);
 
         cache.(target_name) = exhaust_ctrl;

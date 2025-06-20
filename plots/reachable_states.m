@@ -19,7 +19,7 @@ simin = simin.setVariable(t_0 = 0);
 simin = simin.setVariable(dt = 1/100);
 simin = simin.setModelParameter(SimulationMode = "accelerator", FastRestart = "on");
 
-[upper, lower] = find_reachable_states(simin, apogee_target, altitude_values, ...
+[upper, lower] = calc_bounds(simin, apogee_target, altitude_values, ...
     baseline{activation_point, "Lateral velocity"});
 
 

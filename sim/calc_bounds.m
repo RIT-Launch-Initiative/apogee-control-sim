@@ -1,4 +1,4 @@
-function [uppers, lowers] = find_reachable_states(simin, target, altitudes, initial_hvel, opts)
+function [uppers, lowers] = calc_bounds(simin, target, altitudes, initial_hvel, opts)
     arguments
         simin Simulink.SimulationInput
         target (1,1) double;
