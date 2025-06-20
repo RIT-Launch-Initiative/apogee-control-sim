@@ -12,14 +12,13 @@ function print2size(fig, path, sz, units)
         units (1,1) string = "pixels";
     end
 
-
     % using set() lets us set up and execute all the operations at once,
     % otherwise we would need annoying drawnow() calls between everything
-    set(fig, WindowStyle = "normal", Units = units);
-    drawnow; 
-    set(fig, Position = [fig.Position(1:2) sz]);
-    drawnow;
-
+    fig.WindowStyle = 'normal';
+    fig.Units = units;
+    waitfor(fig, WindowStyle = 'normal');
+    fig.Position = [1 1 sz];
+    waitfor(fig, Position = [1 1 sz]);
     exportgraphics(fig, path, ContentType = "vector");
 end
 
