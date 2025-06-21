@@ -17,8 +17,8 @@ function params = kalman_filter_params(mode)
             params.kalm_output = [1 0 0 0; 0 0 1 1];
             % params.kalm_ffwd = zeros(size(params.kalm_output, 1), 1);
             params.kalm_initial = [0; 0; 0; 9.8];
-            params.kalm_meas_cov = diag([10, 8e-4]);
-            params.kalm_process_cov = diag([0.01 0.01 20 1]);
+            params.kalm_meas_cov = diag([1, 8e-4]);
+            params.kalm_process_cov = diag([0.001 0.001 1 0.01]);
         % case "alt"
         %     params.kalm_state = [1 dt dt^2/2 % z
         %         0 1 dt; % zdot
