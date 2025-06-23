@@ -88,4 +88,4 @@ legend(Location = "best");
 linkaxes(layout.Children, "x");
 xlabel(layout, "Time");
 
-print2size(alt_fig, fullfile(graphics_path, "accel_noise.pdf"), [500 400]);
+print2size(accel_fig, fullfile(graphics_path, "accel_noise.pdf"), [500 400]);
