@@ -12,13 +12,23 @@ function print2size(fig, path, sz, units)
         units (1,1) string = "pixels";
     end
 
-    % using set() lets us set up and execute all the operations at once,
-    % otherwise we would need annoying drawnow() calls between everything
+    % this specific combination of drawnow() and waitfor() is determined by
+    % trial-and-error to fully repaint the figure before exportgraphics is
+    % called
+
+    drawnow;
+
+    old_window = fig.WindowStyle;
     fig.WindowStyle = 'normal';
-    fig.Units = units;
     waitfor(fig, WindowStyle = 'normal');
+
+    fig.Units = units;
     fig.Position = [1 1 sz];
     waitfor(fig, Position = [1 1 sz]);
+
     exportgraphics(fig, path, ContentType = "vector");
+
+    fig.WindowStyle = old_window;
+    waitfor(fig, WindowStyle = old_window);
 end
 
