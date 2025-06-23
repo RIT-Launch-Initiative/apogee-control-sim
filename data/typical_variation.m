@@ -1,7 +1,7 @@
 clear;
 project_globals;
 
-num_samples = 50;
+num_samples = 1000;
 stored_vars = ["Lateral distance", "Altitude", ...
     "Lateral velocity", "Vertical velocity"];
 
@@ -11,20 +11,21 @@ orkopts.setWindSpeedDeviation(3)
 orkopts.setTimeStep(0.05);
 
 % define varied parameters
-rod_avg = deg2rad(5);
+sample_size = [num_samples 1];
+rod_avg = deg2rad(4);
 rod_spr = deg2rad(0.5);
-rod_angles = normrnd(rod_avg, rod_spr, [num_samples 1]);
+rod_angles = rod_avg + rod_spr * (rand(sample_size) - 0.5); 
 
 tmp_avg = 273.15 + 25;
 tmp_spr = 10;
-temperatures = normrnd(tmp_avg, tmp_spr, [num_samples 1]);
+temperatures = tmp_avg + tmp_spr * randn(sample_size); 
 
 wdir_offset_spr = deg2rad(20);
-wdir_offsets = normrnd(0, wdir_offset_spr, [num_samples 1]);
+wdir_offsets = wdir_offset_spr * randn(sample_size);
 
 % model mis-specified drag by taking the baseline drag table with ext=0
 cd_spr = 0.1;
-cd_scales = normrnd(1, cd_spr, [num_samples 1]);
+cd_scales = 1 + cd_spr * randn(sample_size);
 baseline_params = vehicle_params("openrocket");
 baseline_drag = table(baseline_params.cd_array.mach, ...
     baseline_params.cd_array.pick{"effort", 0}, ...

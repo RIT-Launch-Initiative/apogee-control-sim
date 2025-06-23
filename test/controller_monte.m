@@ -7,12 +7,11 @@ sensor_mode = "noisy";
 % filt_under_test = "butter";
 filt_under_test = "kalman";
 
-% ctrl_under_test = "exhaust";
-ctrl_under_test = "quantile_effort";
+ctrl_under_test = "exhaust";
+% ctrl_under_test = "quantile_effort";
 % ctrl_under_test = "quantile_tracking";
 
 cases = runs.ork_50;
-% cases = cases(1:10, :);
 
 simin = Simulink.SimulationInput("sim_controller");
 baseline_params = vehicle_params("openrocket");
@@ -38,11 +37,10 @@ end
 
 switch ctrl_under_test
     case "exhaust"
-        params = luts.exhaust_100_by_100;
         simin = simin.setVariable(controller_rate = 10);
         simin = simin.setVariable(control_mode = "exhaust");
         simin = simin.setVariable(baro_lut = ...
-            xarray2lut(params.lut, ["vel", "alt"]));
+            xarray2lut(luts.exhaust_100_by_100, ["vel", "alt"]));
     case "quantile_effort"
         simin = simin.setVariable(controller_rate = 10);
         simin = simin.setVariable(control_mode = "quant");
@@ -51,12 +49,12 @@ switch ctrl_under_test
         simin = simin.setVariable(upper_bound_lut = ...
             xarray2lut(luts.upper_bounds, "alt"));
     case "quantile_tracking"
-        simin = simin.setVariable(controller_rate = 100);
-        simin = simin.setVariable(control_mode = "tracking");
-        simin = simin.setVariable(lower_bound_lut = ...
-            xarray2lut(luts.lower_bounds, "alt"));
-        simin = simin.setVariable(upper_bound_lut = ...
-            xarray2lut(luts.upper_bounds, "alt"));
+        % simin = simin.setVariable(controller_rate = 100);
+        % simin = simin.setVariable(control_mode = "tracking");
+        % simin = simin.setVariable(lower_bound_lut = ...
+        %     xarray2lut(luts.lower_bounds, "alt"));
+        % simin = simin.setVariable(upper_bound_lut = ...
+        %     xarray2lut(luts.upper_bounds, "alt"));
     otherwise
         error ("Unrecognzied case %s", ctrl_under_test);
 end
@@ -67,7 +65,7 @@ switch filt_under_test
         simin = structs2inputs(simin, alt_filter_params("designed"));
         simin = structs2inputs(simin, accel_filter_params("designed"));
     case "kalman"
-        params = kalman_filter_params("accel-bias");
+        params = kalman_filter_params("alt-accel-bias");
 
         % This is not strictly accurate;
         % - each simulation will have a different initial state
@@ -103,6 +101,7 @@ simins = structs2inputs(simin, monte_inits);
 
 fprintf(" finished in %.1f sec\n", toc(start));
 simouts = sim(simins, ShowProgress = "on", StopOnError = true, UseFastRestart = "on");
+% parsim() gets stuck on configuring the cache folder for some reason
 
 
 lower_bounds = luts.lower_bounds;
