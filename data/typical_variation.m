@@ -1,9 +1,9 @@
 clear;
 project_globals;
 
-num_samples = 1000;
+num_samples = 100;
 stored_vars = ["Lateral distance", "Altitude", ...
-    "Lateral velocity", "Vertical velocity"];
+    "Lateral velocity", "Vertical velocity", "Wind velocity"];
 
 % better to randomize wind inside the simulation using OR's Karman wind noise
 orkopts.setWindSpeedAverage(7);
@@ -13,8 +13,8 @@ orkopts.setTimeStep(0.05);
 % define varied parameters
 sample_size = [num_samples 1];
 rod_avg = deg2rad(4);
-rod_spr = deg2rad(0.5);
-rod_angles = rod_avg + rod_spr * (rand(sample_size) - 0.5); 
+rod_spr = deg2rad(1);
+rod_angles = rod_avg + rod_spr * 2 * (rand(sample_size) - 0.5); 
 
 tmp_avg = 273.15 + 25;
 tmp_spr = 10;
@@ -39,6 +39,7 @@ cases.wind_off = wdir_offsets;
 cases.cd_scale = cd_scales;
 
 % informational
+cases.wind_speed = NaN(height(cases), 1); 
 cases.apogee = NaN(height(cases), 1); 
 cases.on_time = NaN(height(cases), 1); % time at which airbrake turns on
 
@@ -63,6 +64,7 @@ for i_sim = 1:num_samples
         outputs = stored_vars, stop = "APOGEE", drag = dragdata);
 
     % Informational
+    cases{i_sim, "wind_speed"} = data{eventfilter("LAUNCHROD"), "Wind velocity"};
     cases{i_sim, "apogee"} = max(data.Altitude);
 
     idx_on = find(data.("Vertical velocity") > vel_max, 1, "last") + 1;

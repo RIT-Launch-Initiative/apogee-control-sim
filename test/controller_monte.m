@@ -7,11 +7,15 @@ sensor_mode = "noisy";
 % filt_under_test = "butter";
 filt_under_test = "kalman";
 
-ctrl_under_test = "exhaust";
-% ctrl_under_test = "quantile_effort";
+% ctrl_under_test = "exhaust";
+ctrl_under_test = "quantile_effort";
 % ctrl_under_test = "quantile_tracking";
 
-cases = runs.ork_50;
+
+cases = runs.ork_100;
+% cases = cases(1:10, :);
+
+target_name = sprintf("filt-%s_ctrl-%s_%d", filt_under_test, ctrl_under_test, height(cases));
 
 simin = Simulink.SimulationInput("sim_controller");
 baseline_params = vehicle_params("openrocket");
@@ -106,12 +110,11 @@ simouts = sim(simins, ShowProgress = "on", StopOnError = true, UseFastRestart = 
 
 lower_bounds = luts.lower_bounds;
 upper_bounds = luts.upper_bounds;
-figure(name = "Monte Carlo raw outputs");
+
+traj_figure = figure(name = "Monte Carlo raw outputs");
 layout = tiledlayout(3,1);
 
 traj_ax = nexttile([2 1]); hold on; grid on;
-plot(lower_bounds, "--k");
-plot(upper_bounds, "--k");
 xlim([min(lower_bounds.alt), max(lower_bounds.alt)]);
 ylim([min(double(lower_bounds)), max(double(upper_bounds))]);
 xlabel("Altitude");
@@ -125,7 +128,7 @@ ylabel("Extension");
 xlabel("Time");
 
 colors = colororder; % get default MATLAB color sequence 
-col = [colors(1,:) 0.2];
+col = [colors(1,:) 0.1];
 
 cases.ctrl_apogee = NaN(height(cases), 1);
 for i_sim = 1:length(simouts)
@@ -136,4 +139,55 @@ for i_sim = 1:length(simouts)
     plot(traj_ax, logs.altitude_est, logs.velocity_est, Color = col);
     plot(effort_ax, logs.Time, logs.extension, Color = col);
 end
+
+axes(traj_ax);
+plot(lower_bounds, "--k");
+plot(upper_bounds, "--k");
+
+fprintf("Target: %s\n", target_name);
+fprintf("Final apogee error quartiles: [%+.1f %+.2f %+.1f] m\n", ...
+    prctile(cases.ctrl_apogee, [25 50 75]) - apogee_target);
+
+print2size(traj_figure, fullfile(graphics_path, target_name + ".pdf"), [350 400]);
+
+
+% independent_vars = ["cd_scale", "wind_speed", "wind_off", "temp", "rod_angle"];
+% labels = ["C_D scale", "Wind speed", "Wind offset", "Temperature", "Rod angle"];
+% units = ["", "m/s", "deg", char(176) + "C", "deg"];
+% funcs = {@(v) v, @(v) v, @rad2deg, @(v) v - 273.15, @rad2deg};
+%
+% baseline_fig = figure(name = "Baseline sensitivities");
+% layout = tiledlayout("flow");
+% for i_var = 1:length(independent_vars)
+%     nexttile; hold on; grid on;
+%
+%     transform = funcs{i_var};
+%     xdata = transform(cases.(independent_vars(i_var)));
+%     scatter(xdata, cases.apogee, 20, "k", "x");
+%     yline(apogee_target, "--k");
+%
+%     xlabel(labels(i_var));
+%     xsecondarylabel(units(i_var));
+%     ylabel("Baseline apogee");
+%     ysecondarylabel("m AGL")
+% end
+% linkaxes(layout.Children, "y");
+%
+%
+% ctrl_fig = figure(name = "Controller sensitivities");
+% layout = tiledlayout("flow");
+% for i_var = 1:length(independent_vars)
+%     nexttile; hold on; grid on;
+%
+%     transform = funcs{i_var};
+%     xdata = transform(cases.(independent_vars(i_var)));
+%     yline(apogee_target, "--k");
+%     scatter(xdata, cases.ctrl_apogee, 20, "k", "+");
+%
+%     xlabel(labels(i_var));
+%     xsecondarylabel(units(i_var));
+%     ylabel("Controlled apogee");
+%     ysecondarylabel("m AGL");
+% end
+% linkaxes(layout.Children, "y");
 

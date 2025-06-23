@@ -22,7 +22,6 @@ simin = simin.setModelParameter(SimulationMode = "accelerator", FastRestart = "o
 [upper, lower] = calc_bounds(simin, apogee_target, altitude_values, ...
     baseline{activation_point, "Lateral velocity"});
 
-
 % required every time model is
 % initialized in Fast Restart, otherwise it needs to be manually disabled later
 % to make parameter or model changes, which is annoying
