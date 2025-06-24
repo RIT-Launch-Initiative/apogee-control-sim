@@ -10,9 +10,7 @@ inits = get_initial_data(data);
 ctrl.brake_on = 0;
 ctrl.brake_off = 100;
 
-simin = structs2inputs(sim_file, vehicle_data);
-simin = structs2inputs(simin, inits);
-simin = structs2inputs(simin, ctrl);
+simin = structs2inputs(sim_file, vehicle_data, inits, ctrl);
 
 simin_off = simin.setVariable(const_brake = 0);
 simin_on = simin.setVariable(const_brake = 1);

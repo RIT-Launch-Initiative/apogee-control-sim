@@ -7,8 +7,8 @@ sensor_mode = "noisy";
 % filt_under_test = "butter";
 filt_under_test = "kalman";
 
-% ctrl_under_test = "exhaust";
-ctrl_under_test = "quantile_effort";
+ctrl_under_test = "exhaust";
+% ctrl_under_test = "quantile_effort";
 % ctrl_under_test = "quantile_tracking";
 
 
@@ -134,6 +134,9 @@ cases.ctrl_apogee = NaN(height(cases), 1);
 for i_sim = 1:length(simouts)
     logs = extractTimetable(simouts(i_sim).logsout);
     logs = fillmissing(logs, "previous");
+
+    % decimate the plot so it isn't as astonishingly laggy in a PDF
+    logs = retime(logs, "regular", "linear", SampleRate = 5); 
 
     cases.ctrl_apogee(i_sim) = simouts(i_sim).apogee;
     plot(traj_ax, logs.altitude_est, logs.velocity_est, Color = col);

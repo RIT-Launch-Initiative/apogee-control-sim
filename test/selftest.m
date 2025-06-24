@@ -29,18 +29,11 @@ ctrl.observer_rate = 100;
 ctrl.controller_rate = 10;
 
 %% Simulate
-simin_full = structs2inputs("sim_controller", vehicle_data);
-simin_full = structs2inputs(simin_full, inits);
-simin_full = structs2inputs(simin_full, ctrl);
-simin_full = structs2inputs(simin_full, accel_params("ideal"));
-simin_full = structs2inputs(simin_full, baro_params("ideal"));
-simin_full = structs2inputs(simin_full, actuator_params("ideal"));
-simin_full = structs2inputs(simin_full, alt_filter_params("none"));
-simin_full = structs2inputs(simin_full, accel_filter_params("none"));
+simin_full = structs2inputs("sim_controller", vehicle_data, ...
+    accel_params("ideal"), baro_params("ideal"), actuator_params("ideal"), ...
+    inits, ctrl);
 
-simin_cut = structs2inputs("sim_const", vehicle_data);
-simin_cut = structs2inputs(simin_cut, inits);
-simin_cut = structs2inputs(simin_cut, ctrl);
+simin_cut = structs2inputs("sim_const", vehicle_data, inits, ctrl);
 simin_cut = simin_cut.setModelParameter(FastRestart = "on", SimulationMode = "accelerator");
 
 %% Get simulated data
