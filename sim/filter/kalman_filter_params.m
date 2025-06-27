@@ -14,7 +14,8 @@ function params = kalman_filter_params(mode)
         0 1 dt 0; % zdot
         0 0 1 0; % zddot
         0 0 0 1]; % abias
-    params.kalm_output = [1 0 0 0;
+    baro_lag = 0.1;
+    params.kalm_output = [1 -baro_lag -baro_lag^2/2 0;
         0 0 1 1];
     params.kalm_initial = [0; 0; 0; 9.8];
 

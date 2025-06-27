@@ -13,7 +13,7 @@ function params = accel_params(mode)
             params.ACCEL_COV = 8e-4;
             params.ACCEL_BIAS = 0;
             params.ACCEL_LSB = 488e-6 * 9.81;
-            params.ACCEL_RANGE = 32 * 9.81;
+            params.ACCEL_RANGE = 8 * 9.81;
         case "ctrl"
             params.ACCEL_COV = 0.0361;
             params.ACCEL_BIAS = 0;

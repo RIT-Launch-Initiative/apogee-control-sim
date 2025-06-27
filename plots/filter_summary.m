@@ -9,7 +9,7 @@ kalm_path = pfullfile("sim", "sim_kalman");
 
 % get raw data from OpenRocket
 % orkopts.setWindSpeedDeviation(0);
-orkopts.setLaunchRodAngle(deg2rad(20));
+% orkopts.setLaunchRodAngle(deg2rad(20));
 orkdata = doc.simulate(orksim, stop = "APOGEE", outputs = "ALL");
 % join to N-by-2 for Simulink input
 orkdata = mergevars(orkdata, ["Lateral acceleration", "Vertical acceleration"], ...
@@ -23,8 +23,8 @@ config.dt = 1/100;
 config.GROUND_LEVEL = orkopts.getLaunchAltitude();
 config.GRAVITY = orkdata{1, "Gravitational acceleration"};
 
-baro_p = baro_params("ctrl");
-accel_p = accel_params("ctrl");
+baro_p = baro_params("bmp388");
+accel_p = accel_params("lsm6dsl");
 inputs.position = orkdata(:, "position");
 inputs.position_init = orkdata{1, "position"}';
 inputs.velocity_init = orkdata{1, ["Lateral velocity", "Vertical velocity"]}';
@@ -99,4 +99,4 @@ linkaxes(layout.Children, "x");
 xlabel(layout, "Time");
 
 out_name = sprintf("estimator_responses_%d.pdf", rad2deg(orkopts.getLaunchRodAngle()));
-print2size(filters_fig, fullfile(graphics_path, out_name), [800 600]);
+% print2size(filters_fig, fullfile(graphics_path, out_name), [800 600]);
