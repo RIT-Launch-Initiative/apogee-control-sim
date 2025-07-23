@@ -1,11 +1,13 @@
 # apogee-control-sim
-Simulations for RIT Launch's prototype apogee control system. A 2-DOF dynamic
-model simulates the rocket's dynamics and controller response.
+Simulations for RIT Launch's prototype apogee control system. 
 
-# Structure
-The core model is `sim_2dof.slx`. It defines a skeleton to populate with more
-detailed models. Currently, the two major points of flexibility are the
-controller and aerodynamic models.
+A 2-DOF dynamic model simulates the rocket's dynamics and controller response.
+
+# Model Architecture
+Simulink *Subsystems* represent model components, which Simulink *Models*
+assemble into test cases. Most model components are associated with a
+`_params.m` that retrieve the model's parameters in a particular configuration
+(a sensor can be "ideal" or a specific model number). 
 
 ```
 data/   - raw flight data
@@ -18,6 +20,21 @@ test/   - uses files in sim/ and data/ to produce test results
         - everything that produces a plot for a report goes here
 
 ```
+
+In general, to run a simulation, 
+
+1. Store the outputs of the required `_params.m` functions and initial conditions
+(manually or from an OpenRocket output timetable) in variables.
+2. Use `structs2inputs` to assign the fields of these structures to a
+   Simulink.SimulationInput (which can be an array, if any structure is an array
+   of random samples).
+3. Use `sim` (possibly with Fast Restart) to obtain outputs from inputs.
+
+Many of the calculations require large amounts of simulations. To keep things
+reasonable, separate scripts run them and store the rseults in `.mat` files
+under `data`.  To run default simulations---mainly `controller_monte` and
+`controller_single`---it is necessary to first run `typical_variation` and
+`generate_luts`.
 
 # Installation instructions
 ## Required Products
