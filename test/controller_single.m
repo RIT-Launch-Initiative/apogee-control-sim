@@ -4,12 +4,11 @@ project_globals;
 sensor_mode = "noisy";
 % sensor_mode = "ideal";
 
-filt_under_test = "butter";
-% filt_under_test = "kalman";
+% filt_under_test = "butter";
+filt_under_test = "kalman";
 
 % ctrl_under_test = "exhaust";
-% ctrl_under_test = "quantile_effort";
-ctrl_under_test = "quantile_tracking";
+ctrl_under_test = "quantile_effort";
 
 simin = Simulink.SimulationInput("sim_controller");
 
@@ -55,17 +54,10 @@ switch ctrl_under_test
         simin = simin.setVariable(controller_rate = 10);
         simin = simin.setVariable(control_mode = "exhaust");
         simin = simin.setVariable(baro_lut = ...
-            xarray2lut(lookups.exhaust_100_by_100.lut, ["vel", "alt"]));
+            xarray2lut(lookups.exhaust_100_by_100, ["vel", "alt"]));
     case "quantile_effort"
         simin = simin.setVariable(controller_rate = 10);
         simin = simin.setVariable(control_mode = "quant");
-        simin = simin.setVariable(lower_bound_lut = ...
-            xarray2lut(lookups.lower_bounds, "alt"));
-        simin = simin.setVariable(upper_bound_lut = ...
-            xarray2lut(lookups.upper_bounds, "alt"));
-    case "quantile_tracking"
-        simin = simin.setVariable(controller_rate = 100);
-        simin = simin.setVariable(control_mode = "tracking");
         simin = simin.setVariable(lower_bound_lut = ...
             xarray2lut(lookups.lower_bounds, "alt"));
         simin = simin.setVariable(upper_bound_lut = ...
