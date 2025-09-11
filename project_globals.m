@@ -1,6 +1,6 @@
 %% DEFINE PROJECT GLOBALS
 % OpenRocket document definitions
-rkt_file = pfullfile("data", "OMEN.ork"); % path to OpenRocket file
+rkt_file = pfullfile("data", "TB-1.ork"); % path to OpenRocket file
 sim_name = "MATLAB"; % name of "nominal case" simulation
 
 % Cache for generated lookup tables

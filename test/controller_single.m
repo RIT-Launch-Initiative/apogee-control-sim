@@ -32,7 +32,7 @@ switch filt_under_test
         simin = structs2inputs(simin, alt_filter_params("designed"));
         simin = structs2inputs(simin, accel_filter_params("designed"));
     case "kalman"
-        params = kalman_filter_params("accel-bias");
+        params = kalman_filter_params("alt-accel-bias");
         % the initial state is not likely to be perfect, but this is more
         % realistic than using all-zeros 
         initdata = retime(orkdata, seconds(inits.t_0));

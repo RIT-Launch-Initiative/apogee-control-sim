@@ -21,7 +21,7 @@ function [params] = vehicle_params(mode)
             plate_width = 9e-2; % [m]
             plate_length = 4e-2; % [m]
 
-            doc = openrocket(pfullfile("data", "OMEN.ork"));
+            doc = openrocket(pfullfile("data", "TB-1.ork"));
             orksim = doc.sims("MATLAB");
 
             % get dimensions etc.
