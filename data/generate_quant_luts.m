@@ -11,7 +11,12 @@ quant_ctrl = calc_quantile_lut(const_simin, apogee_target, ...
 luts.(target_name) = quant_ctrl;
 
 % export to csv
-export_quant_lut(quant_ctrl, target_name+".csv");
+writematrix(["alt" "vel";lower_bounds.("alt") double(lower_bounds)], ...
+    lower_name+".csv");
+writematrix(["alt" "vel";upper_bounds.("alt") double(upper_bounds)], ...
+    upper_name+".csv");
+writematrix(["vel_v alt_>" quant_20_by_100.("alt")'; ...
+    quant_20_by_100.("quant") double(quant_20_by_100)], target_name+".csv");
 
 % display
 exp_fig = figure(name = target_name);
