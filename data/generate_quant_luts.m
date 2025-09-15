@@ -10,6 +10,9 @@ quant_ctrl = calc_quantile_lut(const_simin, apogee_target, ...
     luts.(upper_name), luts.(lower_name), num_quant);
 luts.(target_name) = quant_ctrl;
 
+% export to csv
+export_quant_lut(quant_ctrl, target_name+".csv");
+
 % display
 exp_fig = figure(name = target_name);
 contourf(quant_ctrl, cmap = "parula", clabel = "Effort [0-1]")
