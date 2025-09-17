@@ -11,14 +11,7 @@ quant_ctrl = calc_quantile_lut(const_simin, apogee_target, ...
 luts.(target_name) = quant_ctrl;
 
 % export to csv
-lowers = luts.(lower_name); % is it ok to add these var names to workspace?
-uppers = luts.(upper_name);
-writematrix(["alt" "vel";lowers.("alt") double(lowers)], ...
-    lower_name+".csv");
-writematrix(["alt" "vel";uppers.("alt") double(uppers)], ...
-    upper_name+".csv");
-writematrix(["vel_v alt_>" quant_ctrl.("alt")'; ...
-    quant_ctrl.("quant") double(quant_ctrl)], target_name+".csv");
+luts2csv(quant_ctrl, luts.(upper_name), luts.(lower_name), fileparts(luts_file))
 
 % display
 exp_fig = figure(name = target_name);
