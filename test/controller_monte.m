@@ -18,13 +18,13 @@ cases = runs.ork_100;
 target_name = sprintf("filt-%s_ctrl-%s_%d", filt_under_test, ctrl_under_test, height(cases));
 
 simin = Simulink.SimulationInput("sim_controller");
-baseline_params = vehicle_params("openrocket");
+baseline_params = vehicle_params("openrocket", rocket_file, sim_name);
 simin = structs2inputs(simin, baseline_params);
 simin = simin.setVariable(dt = 0.01);
 
 simin = simin.setModelParameter(SimulationMode = "accelerator");
 
-orkdata = doc.simulate(doc.sims("MATLAB"), outputs = "ALL", stop = "APOGEE");
+orkdata = doc.simulate(doc.sims(sim_name), outputs = "ALL", stop = "APOGEE");
 inits = get_initial_data(orkdata);
 simin = simin.setVariable(t_0 = inits.t_0);
 

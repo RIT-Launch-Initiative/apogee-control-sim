@@ -12,7 +12,7 @@ ctrl_under_test = "quantile_effort";
 
 simin = Simulink.SimulationInput("sim_controller");
 
-orkdata = doc.simulate(doc.sims("MATLAB"), outputs = "ALL", stop = "APOGEE");
+orkdata = doc.simulate(doc.sims(sim_name), outputs = "ALL", stop = "APOGEE");
 inits = get_initial_data(orkdata);
 
 switch sensor_mode
@@ -66,7 +66,7 @@ switch ctrl_under_test
         error ("Unrecognzied case %s", ctrl_under_test);
 end
 
-simin = structs2inputs(simin, vehicle_params("openrocket"));
+simin = structs2inputs(simin, vehicle_params("openrocket", rocket_file, sim_name));
 simin = structs2inputs(simin, inits);
 simin = simin.setVariable(dt = 0.001);
 
