@@ -49,7 +49,7 @@ switch filt_under_test
 end
 
 % loads the .mat file if is exists, otherwise it generates it
-if isfile("lutdata.mat")
+if isfile(pfullfile("data", "lutdata.mat"))
     % Preloads the lookup table if it is available
     lookups = matfile(pfullfile("data", "lutdata.mat"), Writable = false);
 else
