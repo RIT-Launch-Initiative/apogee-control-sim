@@ -22,8 +22,8 @@ function [params] = vehicle_params(mode, file_name, sim_name)
             efforts = linspace(0, 1, 20); 
             plate_cd = 1.2;
             plate_num = 2;
-            plate_width = 9e-2; % [m]
-            plate_length = 4e-2; % [m]
+            plate_width = sqrt(38.7)*1e-2; % [m]
+            plate_length = plate_width; % [m]
 
             doc = openrocket(pfullfile("data", file_name));
             orksim = doc.sims(sim_name);
