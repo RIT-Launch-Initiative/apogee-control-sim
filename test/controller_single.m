@@ -48,7 +48,15 @@ switch filt_under_test
         error ("Unrecognzied case %s", filt_under_test);
 end
 
-lookups = matfile(pfullfile("data", "lutdata.mat"), Writable = false);
+% loads the .mat file if is exists, otherwise it generates it
+if isfile("lutdata.mat")
+    % Preloads the lookup table if it is available
+    lookups = matfile(pfullfile("data", "lutdata.mat"), Writable = false);
+else
+    generate_quant_luts; % Generates the quantile lookup table
+    lookups = matfile(pfullfile("data", "lutdata.mat"), Writable = false);
+end
+
 switch ctrl_under_test
     case "exhaust"
         simin = simin.setVariable(controller_rate = 10);

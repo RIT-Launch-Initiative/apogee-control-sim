@@ -26,7 +26,7 @@ wdir_offsets = wdir_offset_spr * randn(sample_size);
 % model mis-specified drag by taking the baseline drag table with ext=0
 cd_spr = 0.1;
 cd_scales = 1 + cd_spr * randn(sample_size);
-baseline_params = vehicle_params("openrocket");
+baseline_params = vehicle_params("openrocket", rocket_file, sim_name);
 baseline_drag = table(baseline_params.cd_array.mach, ...
     baseline_params.cd_array.pick{"effort", 0}, ...
     VariableNames = ["MACH", "DRAG"]);
