@@ -49,12 +49,12 @@ switch filt_under_test
 end
 
 % loads the .mat file if is exists, otherwise it generates it
-if isfile(pfullfile("data", "lutdata.mat"))
+if isfile(luts_file)
     % Preloads the lookup table if it is available
-    lookups = matfile(pfullfile("data", "lutdata.mat"), Writable = false);
+    lookups = matfile(luts_file, Writable = false);
 else
     generate_quant_luts; % Generates the quantile lookup table
-    lookups = matfile(pfullfile("data", "lutdata.mat"), Writable = false);
+    lookups = matfile(luts_file, Writable = false);
 end
 
 switch ctrl_under_test

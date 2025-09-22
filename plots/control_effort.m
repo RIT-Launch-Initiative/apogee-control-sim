@@ -2,7 +2,7 @@ clear;
 project_globals;
 
 simdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE");
-vehicle_data = vehicle_params("openrocket");
+vehicle_data = vehicle_params("openrocket", rocket_file, sim_name);
 inits = get_initial_data(simdata);
 ctrl.control_mode = "const";
 ctrl.brake_on = inits.t_0;

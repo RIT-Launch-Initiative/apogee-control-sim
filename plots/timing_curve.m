@@ -3,7 +3,7 @@ project_globals;
 
 drag_fraction = 0.9;
 simdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE");
-vehicle_data = vehicle_params("openrocket");
+vehicle_data = vehicle_params("openrocket", rocket_file, sim_name);
 inits = get_initial_data(simdata);
 brake_data.const_brake = 1;
 brake_data.brake_on = inits.t_0;
