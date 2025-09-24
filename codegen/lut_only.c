@@ -103,3 +103,5 @@ float actuator_effort_lut(float altitude_est, float velocity_est){
     return Q;
 
 }
+//s function compile command for easy copy paste & editing
+// def.OutputFcnSpec = 'single y1 = actuator_effort_lut(single u1, single u2)'
