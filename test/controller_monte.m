@@ -68,6 +68,9 @@ switch ctrl_under_test
             xarray2lut(luts.lower_bounds, "alt"));
         simin = simin.setVariable(upper_bound_lut = ...
             xarray2lut(luts.upper_bounds, "alt"));
+    case "s_function"
+        simin = simin.setVariable(controller_rate = 10);
+        simin = simin.setVariable(control_mode = "s");
     case "quantile_tracking"
         % simin = simin.setVariable(controller_rate = 100);
         % simin = simin.setVariable(control_mode = "tracking");
