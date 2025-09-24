@@ -1,5 +1,3 @@
-clear;
-
 project_globals;
 
 const_sim_path = pfullfile("sim", "sim_const");

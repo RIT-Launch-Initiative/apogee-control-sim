@@ -1,7 +1,7 @@
 %% DEFINE PROJECT GLOBALS
 
 % Rocket Selection
-option = 3;
+option = 1;
 
 % Switch case to select the rocket file and the correct nominal case
 switch option

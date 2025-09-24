@@ -1,4 +1,3 @@
-clear;
 project_globals;
 
 num_samples = 100;

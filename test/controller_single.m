@@ -48,15 +48,6 @@ switch filt_under_test
         error ("Unrecognzied case %s", filt_under_test);
 end
 
-% loads the .mat file if is exists, otherwise it generates it
-if isfile(luts_file)
-    % Preloads the lookup table if it is available
-    lookups = matfile(luts_file, Writable = false);
-else
-    generate_quant_luts; % Generates the quantile lookup table
-    lookups = matfile(luts_file, Writable = false);
-end
-
 switch ctrl_under_test
     case "exhaust"
         simin = simin.setVariable(controller_rate = 10);
@@ -64,6 +55,15 @@ switch ctrl_under_test
         simin = simin.setVariable(baro_lut = ...
             xarray2lut(lookups.exhaust_100_by_100, ["vel", "alt"]));
     case "quantile_effort"
+        % loads the .mat file if is exists, otherwise it generates it
+        if isfile(luts_file)
+            % Preloads the lookup table if it is available
+            lookups = matfile(luts_file, Writable = false);
+        else
+            generate_quant_luts; % Generates the quantile lookup table
+            lookups = matfile(luts_file, Writable = false);
+        end
+
         simin = simin.setVariable(controller_rate = 10);
         simin = simin.setVariable(control_mode = "quant");
         simin = simin.setVariable(lower_bound_lut = ...
@@ -148,3 +148,7 @@ plot(logs.Time, logs.extension, "-", SeriesIndex = 1, DisplayName = "Extension")
 legend;
 ylabel("Airbrake extension");
 xlabel("Time");
+
+% Closes all simulink models after running
+% Fixes some errors if you need to regenerate data
+bdclose('all')
