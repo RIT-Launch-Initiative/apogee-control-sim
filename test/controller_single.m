@@ -8,8 +8,8 @@ sensor_mode = "noisy";
 filt_under_test = "kalman";
 
 % ctrl_under_test = "exhaust";
-ctrl_under_test = "quantile_effort";
-% ctrl_under_test = "s_function";
+% ctrl_under_test = "quantile_effort";
+ctrl_under_test = "s_function";
 
 simin = Simulink.SimulationInput("sim_controller");
 
