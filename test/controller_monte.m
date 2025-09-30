@@ -151,7 +151,7 @@ fprintf("Target: %s\n", target_name);
 fprintf("Final apogee error quartiles: [%+.1f %+.2f %+.1f] m\n", ...
     prctile(cases.ctrl_apogee, [25 50 75]) - apogee_target);
 
-print2size(traj_figure, fullfile(graphics_path, target_name + ".pdf"), [350 400]);
+%print2size(traj_figure, fullfile(graphics_path, target_name + ".pdf"), [350 400]);
 
 
 % independent_vars = ["cd_scale", "wind_speed", "wind_off", "temp", "rod_angle"];
