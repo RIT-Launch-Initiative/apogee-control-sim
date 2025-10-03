@@ -8,8 +8,8 @@ sensor_mode = "noisy";
 filt_under_test = "kalman";
 
 % ctrl_under_test = "exhaust";
-% ctrl_under_test = "quantile_effort";
-ctrl_under_test = "s_function";
+ctrl_under_test = "quantile_effort";
+% ctrl_under_test = "s_function";
 % ctrl_under_test = "quantile_tracking";
 
 % loads the .mat file if is exists, otherwise it generates it
@@ -171,7 +171,7 @@ fprintf("Target: %s\n", target_name);
 fprintf("Final apogee error quartiles: [%+.1f %+.2f %+.1f] m\n", ...
     prctile(cases.ctrl_apogee, [25 50 75]) - apogee_target);
 
-print2size(traj_figure, fullfile(graphics_path, target_name + ".pdf"), [350 400]);
+% print2size(traj_figure, fullfile(graphics_path, target_name + ".pdf"), [350 400]);
 
 
 % independent_vars = ["cd_scale", "wind_speed", "wind_off", "temp", "rod_angle"];
