@@ -33,7 +33,7 @@ simin = simin.setVariable(dt = 0.01);
 
 simin = simin.setModelParameter(SimulationMode = "accelerator");
 
-orkdata = doc.simulate(doc.sims(sim_name), outputs = "ALL", stop = "APOGEE");
+orkdata = doc.simulate(doc.sims(sim_name), outputs = "ALL", stop = "APOGEE", atmos = airdata);
 inits = get_initial_data(orkdata);
 simin = simin.setVariable(t_0 = inits.t_0);
 
@@ -134,6 +134,11 @@ upper_bounds = luts.upper_bounds;
 traj_figure = figure(name = "Monte Carlo raw outputs");
 layout = tiledlayout(3,1);
 
+traj_figure.WindowStyle = 'normal';
+traj_figure.Units = "pixels";
+traj_figure.Position = [0 0 400 300];
+sgtitle("IREC N3800 with 12 lb Ballast")
+
 traj_ax = nexttile([2 1]); hold on; grid on;
 xlim([min(lower_bounds.alt), max(lower_bounds.alt)]);
 ylim([min(double(lower_bounds)), max(double(upper_bounds))]);
@@ -146,6 +151,8 @@ effort_ax = nexttile; hold on; grid on;
 
 ylabel("Extension");
 xlabel("Time");
+
+ylim([0 1]);
 
 colors = colororder; % get default MATLAB color sequence 
 col = [colors(1,:) 0.1];
@@ -170,6 +177,10 @@ plot(upper_bounds, "--k");
 fprintf("Target: %s\n", target_name);
 fprintf("Final apogee error quartiles: [%+.1f %+.2f %+.1f] m\n", ...
     prctile(cases.ctrl_apogee, [25 50 75]) - apogee_target);
+abcdef = cases.ctrl_apogee-apogee_target;
+
+fprintf("%+.2f\n", mean(abcdef));
+fprintf("%+.2f\n", std(abcdef));
 
 % print2size(traj_figure, fullfile(graphics_path, target_name + ".pdf"), [350 400]);
 

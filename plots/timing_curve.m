@@ -2,7 +2,7 @@ clear;
 project_globals;
 
 drag_fraction = 0.9;
-simdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE");
+simdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE", atmos = airdata);
 vehicle_data = vehicle_params("openrocket", rocket_file, sim_name);
 inits = get_initial_data(simdata);
 brake_data.const_brake = 1;

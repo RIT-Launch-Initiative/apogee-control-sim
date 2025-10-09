@@ -60,7 +60,7 @@ for i_sim = 1:num_samples
     dragdata.DRAG = dragdata.DRAG * cases.cd_scale(i_sim);
     
     data = doc.simulate(orksim, ...
-        outputs = stored_vars, stop = "APOGEE", drag = dragdata);
+        outputs = stored_vars, stop = "APOGEE", drag = dragdata, atmos = airdata);
 
     % Informational
     cases{i_sim, "wind_speed"} = data{eventfilter("LAUNCHROD"), "Wind velocity"};

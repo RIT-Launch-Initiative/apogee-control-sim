@@ -5,7 +5,7 @@ brake_drag = "nominal";
 sim_file = pfullfile("sim", "sim_controller");
 
 % doc.sims(1).getOptions().setWindSpeedDeviation(0);
-ordata = doc.simulate(doc.sims(1), outputs = "ALL", stop = "APOGEE");
+ordata = doc.simulate(doc.sims(1), outputs = "ALL", stop = "APOGEE", atmos = airdata);
 vehicle_data = vehicle_params("openrocket", rocket_file, sim_name);
 brake_data = get_brake_data(brake_mode);
 
