@@ -1,64 +1,26 @@
 %% DEFINE PROJECT GLOBALS
 
 % Rocket Selection
-option = 9;
+rkt_option = 4;
 
 % Switch case to select the rocket file and the correct nominal case
-switch option
+switch rkt_option
     case 1
-        rocket_file = "IREC-2026-4U.ork";
-        sim_name = "15mph-Midland-N2220";
-        vel_max = 240; % [m/s] approximate velocity for 0.8Ma
-        alt_start = 830; % [m] approximate altitude at which rocket falls below 0.8Ma
-        apogee_target = 3048; % [m] altitude we are targeting (10,000ft)
-    case 2
-        rocket_file = "IREC-2026-4U.ork";
-        sim_name = "15mph-Midland-N3800-Loki";
-        vel_max = 265;
-        alt_start = 560;
-        apogee_target = 3048;
-    case 3
-        rocket_file = "IREC-2026-4U.ork";
-        sim_name = "15mph-Midland-N3300";
-        vel_max = 252;
-        alt_start = 650;
-        apogee_target = 3048;
-    case 4
-        rocket_file = "IREC-2026-4U.ork";
-        sim_name = "15mph-Midland-N2700-AMW";
-        vel_max = 260;
-        alt_start = 885;
-        apogee_target = 3048;
-    case 5
-        rocket_file = "IREC-2026-4U.ork";
-        sim_name = "15mph-Midland-N2000";
-        vel_max = 260;
-        alt_start = 1570;
-        apogee_target = 3048;
-    case 6
-        rocket_file = "IREC-2026-4U.ork";
-        sim_name = "15-Midland-N10000-CTI";
-        vel_max = 270;
-        alt_start = 570;
-        apogee_target = 3048;
-    case 7
         rocket_file = "OMEN.ork";
         sim_name = "MATLAB";
-        vel_max = 270;
-        alt_start = 1200;
-        apogee_target = 3300;
-    case 8
+        apogee_target = 3300; % [m] altitude we are targeting (10,000ft)
+    case 2
         rocket_file = "TB-1.ork";
         sim_name = "15mph_URRG";
-        vel_max = 198;
-        alt_start = 410;
-        apogee_target = 1350;
-    case 9
-        rocket_file = "IREC-2026.ork";
-        sim_name = "15mph-Midland-M3400";
-        vel_max = 264;
-        alt_start = 857;
-        apogee_target = 3048;
+        apogee_target = 1350; % [m]
+    case 3
+        rocket_file = "IREC-2026-M3400.ork";
+        sim_name = "15mph-Midland";
+        apogee_target = 3048; % [m]
+    case 4
+        rocket_file = "IREC-2026-N3800.ork";
+        sim_name = "15mph-Midland";
+        apogee_target = 3048; % [m]
     otherwise
         error('Invalid rocket file option')
 end
@@ -85,5 +47,24 @@ orkopts = orksim.getOptions();
 luts = matfile(luts_file, Writable = true);
 runs = matfile(runs_file, Writable = true);
 
+% Get custom atmosphere model
 load("21-Jun-2025-10.21.00-midland-gfs_1.mat")
-airdata.TMP = airdata.TMP + 273.15;
+airdata.TMP = airdata.TMP + 273.15; % Convert C to K
+
+% Get vel & alt at the time when airbrakes can first extend, following DTEG rules
+orkdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE", atmos = airdata);
+mach_at_burnout = orkdata{eventfilter("BURNOUT"), "Mach number"};
+if mach_at_burnout >= 0.8
+    % Determined by when rocket is less than mach 0.8
+    orkdata_burnout_to_apogee = orkdata(timerange(eventfilter("BURNOUT"), eventfilter("APOGEE")),:);
+    index_to_mach = find(orkdata_burnout_to_apogee.("Mach number") < 0.8, 1, "first");
+    time_to_mach = orkdata_burnout_to_apogee.Properties.RowTimes(index_to_mach);
+    vel_max = orkdata{time_to_mach, "Vertical velocity"};
+    alt_start = orkdata{time_to_mach, "Altitude"};
+    clear orkdata_burnout_to_apogee index_to_mach time_to_mach
+else
+    % Determined by motor burnout
+    vel_max = orkdata{eventfilter("BURNOUT"), "Vertical velocity"}; % Velocity for 0.8Ma
+    alt_start = orkdata{eventfilter("BURNOUT"), "Altitude"}; % Altitude at which rocket falls below 0.8Ma
+end
+clear orkdata mach_at_burnout

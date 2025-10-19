@@ -13,7 +13,7 @@ ctrl_under_test = "quantile_effort";
 
 simin = Simulink.SimulationInput("sim_controller");
 
-orkdata = doc.simulate(doc.sims(sim_name), outputs = "ALL", stop = "APOGEE", atmos = airdata);
+orkdata = doc.simulate(doc.sims(sim_name), outputs = "ALL", stop = "APOGEE");
 inits = get_initial_data(orkdata);
 
 switch sensor_mode
@@ -91,20 +91,67 @@ true_args = {"DisplayName", "True"};
 meas_args = {"DisplayName", "Measured"};
 est_args = {"DisplayName", "Estimated"};
 
-this_fig = figure(name = "Effort history");
+figure(name = "State estimation");
+layout = tiledlayout(3,2);
+layout.TileIndexing = "rowmajor";
 
-hold on; grid on;
-% plot(logs.position(:,2), logs.velocity(:,2), true_args{:});
-plot(logs.altitude_est, logs.velocity_est, est_args{:}, "LineWidth", 2);
+nexttile; hold on; grid on;
+plot(logs.Time, logs.position(:,2), true_args{:});
+% plot(logs.Time, logs.altitude_meas, meas_args{:});
+plot(logs.Time, logs.altitude_est, est_args{:});
+ylabel("Altitude");
+ysecondarylabel("m AGL");
+
+nexttile; hold on; grid on;
+plot(logs.Time, logs.altitude_est - logs.position(:,2));
+ylabel("Error");
+ysecondarylabel("m");
+
+nexttile; hold on; grid on;
+plot(logs.Time, logs.velocity(:,2), true_args{:});
+% plot(logs.Time, logs.velocity_meas, meas_args{:});
+plot(logs.Time, logs.velocity_est, est_args{:});
+ylabel("Vertical velocity");
+ysecondarylabel("m/s");
+
+nexttile; hold on; grid on;
+plot(logs.Time, logs.velocity_est - logs.velocity(:,2));
+ylabel("Error");
+ysecondarylabel("m/s");
+
+nexttile; hold on; grid on;
+plot(logs.Time, logs.acceleration(:,2), true_args{:});
+plot(logs.Time, logs.accel_meas, meas_args{:});
+plot(logs.Time, logs.accel_est, est_args{:});
+ylabel("Vertical acceleration");
+ysecondarylabel("m/s^2");
+xlabel("Time");
+
+nexttile; hold on; grid on;
+plot(logs.Time, logs.accel_est - logs.acceleration(:,2));
+ylabel("Error");
+ysecondarylabel("m/s^2");
+xlabel("Time");
+
+
+figure(name = "Effort history");
+layout = tiledlayout(3,1);
+
+nexttile([2 1]); hold on; grid on;
+plot(logs.position(:,2), logs.velocity(:,2), true_args{:});
+plot(logs.altitude_est, logs.velocity_est, est_args{:});
 xlabel("Altitude");
 xsecondarylabel("m AGL");
 ylabel("Vertical velocity");
 ysecondarylabel("m/s");
-ylim([0 250]);
-xlim([logs.altitude_est(11), logs.altitude_est(end)])
-% this_fig.WindowStyle = 'normal';
-% this_fig.Units = "pixels";
-% this_fig.Position = [0 0 400 300];
+legend;
+
+nexttile; hold on; grid on;
+plot(logs.Time, logs.effort, "--", SeriesIndex = 1, DisplayName = "Controller effort");
+plot(logs.Time, logs.extension, "-", SeriesIndex = 1, DisplayName = "Extension");
+legend;
+ylabel("Airbrake extension");
+xlabel("Time");
 
 % Closes all simulink models after running
 % Fixes some errors if you need to regenerate data
