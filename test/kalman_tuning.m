@@ -9,7 +9,7 @@ accel_p.GRAVITY = 9.81;
 kalm_p = kalman_filter_params("alt-accel-bias");
 
 % orkopts.setLaunchRodAngle(deg2rad(20));
-orkdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE");
+orkdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE", atmos = airdata);
 orkdata = fillmissing(orkdata, "previous");
 
 inputs.t_0 = seconds(orkdata.Time(1));

@@ -7,10 +7,19 @@ sensor_mode = "noisy";
 % filt_under_test = "butter";
 filt_under_test = "kalman";
 
-ctrl_under_test = "exhaust";
-% ctrl_under_test = "quantile_effort";
+% ctrl_under_test = "exhaust";
+ctrl_under_test = "quantile_effort";
+% ctrl_under_test = "s_function";
 % ctrl_under_test = "quantile_tracking";
 
+% loads the .mat file if is exists, otherwise it generates it
+if isfile(runs_file)
+    % Preloads the variations for the monte carlo if it is available
+    lookups = matfile(runs_file, Writable = false);
+else
+    typical_variation; % Generates the variations for the monte carlo
+    lookups = matfile(runs_file, Writable = false);
+end
 
 cases = runs.ork_100;
 % cases = cases(1:10, :);
@@ -18,13 +27,13 @@ cases = runs.ork_100;
 target_name = sprintf("filt-%s_ctrl-%s_%d", filt_under_test, ctrl_under_test, height(cases));
 
 simin = Simulink.SimulationInput("sim_controller");
-baseline_params = vehicle_params("openrocket");
+baseline_params = vehicle_params("openrocket", rocket_file, sim_name);
 simin = structs2inputs(simin, baseline_params);
 simin = simin.setVariable(dt = 0.01);
 
 simin = simin.setModelParameter(SimulationMode = "accelerator");
 
-orkdata = doc.simulate(doc.sims("MATLAB"), outputs = "ALL", stop = "APOGEE");
+orkdata = doc.simulate(doc.sims(sim_name), outputs = "ALL", stop = "APOGEE");
 inits = get_initial_data(orkdata);
 simin = simin.setVariable(t_0 = inits.t_0);
 
@@ -46,12 +55,23 @@ switch ctrl_under_test
         simin = simin.setVariable(baro_lut = ...
             xarray2lut(luts.exhaust_100_by_100, ["vel", "alt"]));
     case "quantile_effort"
+        % loads the .mat file if is exists, otherwise it generates it
+        if isfile(luts_file)
+            % Preloads the lookup table if it is available
+            lookups = matfile(luts_file, Writable = false);
+        else
+            generate_quant_luts; % Generates the quantile lookup table
+            lookups = matfile(luts_file, Writable = false);
+        end
         simin = simin.setVariable(controller_rate = 10);
         simin = simin.setVariable(control_mode = "quant");
         simin = simin.setVariable(lower_bound_lut = ...
             xarray2lut(luts.lower_bounds, "alt"));
         simin = simin.setVariable(upper_bound_lut = ...
             xarray2lut(luts.upper_bounds, "alt"));
+    case "s_function"
+        simin = simin.setVariable(controller_rate = 10);
+        simin = simin.setVariable(control_mode = "s");
     case "quantile_tracking"
         % simin = simin.setVariable(controller_rate = 100);
         % simin = simin.setVariable(control_mode = "tracking");
@@ -151,7 +171,7 @@ fprintf("Target: %s\n", target_name);
 fprintf("Final apogee error quartiles: [%+.1f %+.2f %+.1f] m\n", ...
     prctile(cases.ctrl_apogee, [25 50 75]) - apogee_target);
 
-print2size(traj_figure, fullfile(graphics_path, target_name + ".pdf"), [350 400]);
+% print2size(traj_figure, fullfile(graphics_path, target_name + ".pdf"), [350 400]);
 
 
 % independent_vars = ["cd_scale", "wind_speed", "wind_off", "temp", "rod_angle"];
@@ -194,3 +214,6 @@ print2size(traj_figure, fullfile(graphics_path, target_name + ".pdf"), [350 400]
 % end
 % linkaxes(layout.Children, "y");
 
+% Closes all simulink models after running
+% Fixes some errors if you need to regenerate data
+bdclose('all')

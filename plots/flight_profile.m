@@ -4,7 +4,7 @@ project_globals;
 peak_velocity = 270; % [m/s] first time we can start extending
 drag_fraction = 0.90; % [-] fraction we consider "almost all" of the drag
 
-simdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE");
+simdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE", atmos = airdata);
 simdata = simdata(timerange(eventfilter("LAUNCHROD"), eventfilter("APOGEE")), :);
 
 i_start = find(simdata.("Total velocity") >= peak_velocity, 1, "last");

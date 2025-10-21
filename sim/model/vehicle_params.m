@@ -1,14 +1,18 @@
 % Get vehicle params in format expected by sim_2dof.slx
 % [params] = ork2vehicle(doc)
 % Inputs
-%   mode     (string)    OpenRocket document
+%   mode            (string)    OpenRocket document
+%   file_name       (string)    OpenRocket file name
+%   sim_name        (string)    OpenRocket sim name
 % Outputs
 %   params    (struct)        
 %       Structure with fields MASS_DRY, REF_AREA, DRAG_DATA, GROUND_LEVEL, GRAVITY
 
-function [params] = vehicle_params(mode)
+function [params] = vehicle_params(mode, file_name, sim_name)
     arguments
         mode (1,1) string;
+        file_name (1,1) string;
+        sim_name (1,1) string;
     end
     
     switch mode
@@ -18,11 +22,11 @@ function [params] = vehicle_params(mode)
             efforts = linspace(0, 1, 20); 
             plate_cd = 1.2;
             plate_num = 2;
-            plate_width = 9e-2; % [m]
-            plate_length = 4e-2; % [m]
+            plate_width = sqrt(23.39)*1e-2; % [m]
+            plate_length = plate_width; % [m]
 
-            doc = openrocket(pfullfile("data", "OMEN.ork"));
-            orksim = doc.sims("MATLAB");
+            doc = openrocket(pfullfile("data", file_name));
+            orksim = doc.sims(sim_name);
 
             % get dimensions etc.
             [~, params.MASS_DRY, ~] = doc.massdata("BURNOUT");

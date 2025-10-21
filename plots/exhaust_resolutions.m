@@ -5,8 +5,8 @@ brake_drag = "nominal";
 sim_file = pfullfile("sim", "sim_controller");
 
 % doc.sims(1).getOptions().setWindSpeedDeviation(0);
-ordata = doc.simulate(doc.sims(1), outputs = "ALL", stop = "APOGEE");
-vehicle_data = vehicle_params(doc);
+ordata = doc.simulate(doc.sims(1), outputs = "ALL", stop = "APOGEE", atmos = airdata);
+vehicle_data = vehicle_params("openrocket", rocket_file, sim_name);
 brake_data = get_brake_data(brake_mode);
 
 if brake_drag == "underestimated"
@@ -15,7 +15,7 @@ elseif brake_drag == "overestimated"
     brake_data.PLATE_CD = 1.0;
 end
 
-simin = structs2inputs(sim_file, vehicle_params(doc));
+simin = structs2inputs(sim_file, vehicle_params("openrocket", rocket_file, sim_name));
 simin = structs2inputs(simin, get_brake_data(brake_mode));
 simin = structs2inputs(simin, get_initial_data(ordata));
 simin = simin.setVariable(dt = 0.01);

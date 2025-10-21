@@ -9,10 +9,11 @@ filt_under_test = "kalman";
 
 % ctrl_under_test = "exhaust";
 ctrl_under_test = "quantile_effort";
+% ctrl_under_test = "s_function";
 
 simin = Simulink.SimulationInput("sim_controller");
 
-orkdata = doc.simulate(doc.sims("MATLAB"), outputs = "ALL", stop = "APOGEE");
+orkdata = doc.simulate(doc.sims(sim_name), outputs = "ALL", stop = "APOGEE");
 inits = get_initial_data(orkdata);
 
 switch sensor_mode
@@ -32,7 +33,7 @@ switch filt_under_test
         simin = structs2inputs(simin, alt_filter_params("designed"));
         simin = structs2inputs(simin, accel_filter_params("designed"));
     case "kalman"
-        params = kalman_filter_params("accel-bias");
+        params = kalman_filter_params("alt-accel-bias");
         % the initial state is not likely to be perfect, but this is more
         % realistic than using all-zeros 
         initdata = retime(orkdata, seconds(inits.t_0));
@@ -48,7 +49,6 @@ switch filt_under_test
         error ("Unrecognzied case %s", filt_under_test);
 end
 
-lookups = matfile(pfullfile("data", "lutdata.mat"), Writable = false);
 switch ctrl_under_test
     case "exhaust"
         simin = simin.setVariable(controller_rate = 10);
@@ -56,17 +56,29 @@ switch ctrl_under_test
         simin = simin.setVariable(baro_lut = ...
             xarray2lut(lookups.exhaust_100_by_100, ["vel", "alt"]));
     case "quantile_effort"
+        % loads the .mat file if is exists, otherwise it generates it
+        if isfile(luts_file)
+            % Preloads the lookup table if it is available
+            lookups = matfile(luts_file, Writable = false);
+        else
+            generate_quant_luts; % Generates the quantile lookup table
+            lookups = matfile(luts_file, Writable = false);
+        end
+
         simin = simin.setVariable(controller_rate = 10);
         simin = simin.setVariable(control_mode = "quant");
         simin = simin.setVariable(lower_bound_lut = ...
             xarray2lut(lookups.lower_bounds, "alt"));
         simin = simin.setVariable(upper_bound_lut = ...
             xarray2lut(lookups.upper_bounds, "alt"));
+    case "s_function"
+        simin = simin.setVariable(controller_rate = 10);
+        simin = simin.setVariable(control_mode = "s");
     otherwise
         error ("Unrecognzied case %s", ctrl_under_test);
 end
 
-simin = structs2inputs(simin, vehicle_params("openrocket"));
+simin = structs2inputs(simin, vehicle_params("openrocket", rocket_file, sim_name));
 simin = structs2inputs(simin, inits);
 simin = simin.setVariable(dt = 0.001);
 
@@ -140,3 +152,7 @@ plot(logs.Time, logs.extension, "-", SeriesIndex = 1, DisplayName = "Extension")
 legend;
 ylabel("Airbrake extension");
 xlabel("Time");
+
+% Closes all simulink models after running
+% Fixes some errors if you need to regenerate data
+bdclose('all')

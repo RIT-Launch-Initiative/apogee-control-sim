@@ -7,15 +7,15 @@ project_globals;
 
 %% Set up orkdata
 
-orksim = doc.sims("MATLAB");
+orksim = doc.sims(sim_name);
 opts = orksim.getOptions();
 opts.setISAAtmosphere(true);
 opts.setWindSpeedAverage(0);
 opts.setWindSpeedDeviation(0);
 % opts.setLaunchRodAngle(deg2rad(70));
-orkdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE");
+orkdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE", atmos = airdata);
 
-vehicle_data = vehicle_params("openrocket");
+vehicle_data = vehicle_params("openrocket", rocket_file, sim_name);
 inits = get_initial_data(orkdata);
 inits.dt = 1/100;
 

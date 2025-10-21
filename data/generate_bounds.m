@@ -1,5 +1,3 @@
-clear;
-
 project_globals;
 
 const_sim_path = pfullfile("sim", "sim_const");
@@ -8,8 +6,8 @@ make_bounds = false;
 upper_name = "upper_bounds";
 lower_name = "lower_bounds";
 
-baseline_data = doc.simulate(orksim, outputs = "ALL", stop = "BURNOUT");
-const_simin = structs2inputs(const_sim_path, vehicle_params("openrocket"));
+baseline_data = doc.simulate(orksim, outputs = "ALL", stop = "BURNOUT", atmos = airdata);
+const_simin = structs2inputs(const_sim_path, vehicle_params("openrocket", rocket_file, sim_name));
 const_simin = structs2inputs(const_simin, get_initial_data(baseline_data));
 const_simin = structs2inputs(const_simin, struct(brake_on = 0, brake_off = 100));
 
