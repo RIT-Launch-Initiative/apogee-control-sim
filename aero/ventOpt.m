@@ -1,14 +1,13 @@
 %% Airbrakes Vent Hole Size Optimization
-% Originally created by Juno Afko for IREC 2026 Testbed
+% Originally created by Juno Afko for TB-1
 % Modified by Zoey Sugerman-Brozan for IREC 2026 Airbrakes
 %% Problem Statement and Assumptions
 % The Kalman filter-Quantile LUT control approach used by the IREC 2026
 % airbrakes controller relies on accurate readings of barometric pressure.
-% Thus, it is imperative to size the avionics vent holes and screw switch
-% holes appropriately to minimize error in those pressure measurements as
-% much as possible. This script will simulate airflow into and out of the
-% avionics section of the airbrakes bay to enable optimal sizing of the
-% venting and screw switch holes.
+% Thus, it is imperative to size the avionics vent hole appropriately to
+% minimize error in those pressure measurements as much as possible. This
+% script will simulate airflow into and out of the avionics section of the 
+% airbrakes bay to enable optimal sizing of the venting hole.
 %
 % The airbrakes bay is split into two sections: a lower mechanical subbay
 % containing the leaflets, servo, and extentsion mechanism, and an upper
@@ -27,8 +26,8 @@
 % effectively similar to a conventional avionics bay.
 %
 % The electronics bay is treated as a single, isolated volume which vents
-% air to outside. Pressure losses through vent holes and screw switch holes
-% are assumed to be equal to the dynamic pressure.
+% air to outside. Pressure losses through the vent hole is assumed to be
+% equal to the dynamic pressure.
 
 %% Setup
 clc
@@ -37,14 +36,14 @@ close all;
 % Run a test OR sim of either IREC 2026 or TB-1
 IRECPath = "..\data\IREC-2026-N3800.ork"; 
 if ~isfile(IRECPath)
-    error("Error: not on path", IRECPath);
+    error("Error: %s not on path", IRECPath);
 end
 TBPath = "..\data\TB-1.ork"; 
 if ~isfile(TBPath)
-    error("Error: not on path", TBPath);
+    error("Error: %s not on path", TBPath);
 end
-rocket = openrocket(TBPath);
-sim = rocket.sims("15mph_URRG");
+rocket = openrocket(TBPath);    % use either TB-1 or IREC
+sim = rocket.sims("15mph_URRG");% name changes for either TB-1 or IREC
 openrocket.simulate(sim);
 % Get data and trim
 simData = openrocket.get_data(sim);
