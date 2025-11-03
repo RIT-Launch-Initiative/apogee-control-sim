@@ -60,7 +60,24 @@ air.T = data.("Air temperature")(1);
 air.rho = air.P/(air.R*air.T);
 air.Cp = 1.005;
 air.h = air.T*air.Cp;
+% Control volume
+elecBay = initControlVolume(1, air); %REPLACE VOLUME WITH REAL NUMBER
+% Other parameters
+ventHoleDiams = [1/16, 1/8, 3/16, 1/4]; % in inches REPLACE WITH GOOD NUMBERS
+ventHoleDiams = ventHoleDiams*0.0254;   % convert to meters
+Avent = pi/4 * ventHoleDiams.^2;
+L = 0.05;
+f_L = 0.05;
+D_L = sqrt((4*A1/pi)); % effective pipe diameter
+k1 = 1; % pipe exit coefficient
+k2 = 0.5; % pipe entrance coefficient
+C_L = 1+k1+k2+f_L*(L/D_L);
+% set timer parameters
+t_end = time(end);
+dt = 5*10^-3;
 
+%% Simulate the electronics bay
+% PUT UPDATED SIMULATION CODE HERE
 
 %% Functions
 function controlVolume = initControlVolume(volume, air)
