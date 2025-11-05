@@ -1,7 +1,7 @@
 %% DEFINE PROJECT GLOBALS
 
 % Rocket Selection
-rkt_option = 4;
+rkt_option = 3;
 
 % Switch case to select the rocket file and the correct nominal case
 switch rkt_option
@@ -14,9 +14,9 @@ switch rkt_option
         sim_name = "15mph_URRG";
         apogee_target = 1350; % [m]
     case 3
-        rocket_file = "IREC-2026-M3400.ork";
+        rocket_file = "IREC-2026-M3464.ork";
         sim_name = "15mph-Midland";
-        apogee_target = 3048; % [m]
+        apogee_target = 2000; % [m]
     case 4
         rocket_file = "IREC-2026-N3800.ork";
         sim_name = "15mph-Midland";
@@ -67,4 +67,5 @@ else
     vel_max = orkdata{eventfilter("BURNOUT"), "Vertical velocity"}; % Velocity for 0.8Ma
     alt_start = orkdata{eventfilter("BURNOUT"), "Altitude"}; % Altitude at which rocket falls below 0.8Ma
 end
+vel_max = vel_max - 0; % Helps with typical_variation
 clear orkdata mach_at_burnout

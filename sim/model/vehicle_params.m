@@ -20,9 +20,9 @@ function [params] = vehicle_params(mode, file_name, sim_name)
             % constants
             machs = [linspace(0, 1.5, 100)]';
             efforts = linspace(0, 1, 20); 
-            plate_cd = 1.2;
+            plate_cd = 0.8;
             plate_num = 2;
-            plate_width = sqrt(23.39)*1e-2; % [m]
+            plate_width = sqrt(26.4516)*1e-2; % [m]
             plate_length = plate_width; % [m]
 
             doc = openrocket(pfullfile("data", file_name));
