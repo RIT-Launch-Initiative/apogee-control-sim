@@ -21,9 +21,8 @@ function [params] = vehicle_params(mode, file_name, sim_name)
             machs = [linspace(0, 1.5, 100)]';
             efforts = linspace(0, 1, 20); 
             plate_cd = 0.8;
-            plate_num = 2;
-            plate_width = sqrt(26.4516)*1e-2; % [m]
-            plate_length = plate_width; % [m]
+            params.plate_num = 2;
+            params.plate_area = 0.00264516; % [m^2] for one leaflet
 
             doc = openrocket(pfullfile("data", file_name));
             orksim = doc.sims(sim_name);
@@ -45,30 +44,30 @@ function [params] = vehicle_params(mode, file_name, sim_name)
             % end up using
 
             % calculate base rocket drag
-            rocket_drag = NaN(size(machs)); 
+            rocket_cd = NaN(size(machs));
             fc = doc.flight_condition(0, 0);
             for i_mach = 1:size(machs, 1)
                 fc.setMach(machs(i_mach));
-                [~, rocket_drag(i_mach), ~, ~, ~] = doc.aerodata3(fc);
+                [~, rocket_cd(i_mach), ~, ~, ~] = doc.aerodata3(fc);
             end
 
-            assert(iscolumn(rocket_drag));
+            assert(iscolumn(rocket_cd));
             assert(isrow(efforts));
             
             % airbrake contribution
-            plate_drag = (plate_num * plate_cd * plate_width * plate_length) .* efforts;
+            plate_cda = (params.plate_num * plate_cd * params.plate_area) .* efforts;
             
             % total drag area (S*C_D) for all M by N points
-            drag_values = plate_drag + params.REF_AREA .* rocket_drag;
+            drag_cda = plate_cda + params.REF_AREA .* rocket_cd;
             
             % convert to C_D dividing by S_R
-            cd_values = drag_values ./ params.REF_AREA;
+            cd_values = drag_cda ./ (params.REF_AREA + params.plate_num * params.plate_area .* efforts);
             % sure this is multiplied later by REF_AREA, but C_D is
             % conventionally normalized using a reference area
 
             % assign to output structure
             % provide both the Simulink LUT and the raw Xarray so that it can be modified if required
-            params.plate_drag_area = plate_drag(end);
+            params.plate_drag_area = plate_cda(end);
             params.cd_array = xarray(cd_values, mach = machs, effort = efforts);
             params.DRAG_LUT = xarray2lut(params.cd_array, ["mach", "effort"]);
 

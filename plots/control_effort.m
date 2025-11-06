@@ -18,20 +18,20 @@ areas = cases.const_brake * vehicle_data.plate_drag_area;
 simouts = sim(simins, UseFastRestart = "on");
 efforts = simouts(1).apogee - [simouts.apogee];
 
-my_drag_area = 2*0.8*(26.4516e-4); % m2
+my_area = (0.00264516) * 2; % m2
 areas_smooth = linspace(areas(1), areas(end), 100);
 efforts_smooth = interp1(areas, efforts, areas_smooth);
-[~, areas_smooth_index] = min(abs(areas_smooth - my_drag_area));
+[~, areas_smooth_index] = min(abs(areas_smooth - my_area));
 current_apogee_reduction = efforts_smooth(areas_smooth_index);
 
 effort_figure = figure(name = "Airbrake area design curve");
 grid on; hold on;
 plot(1e4 * areas, efforts, "+");
 %yline(max(simdata.Altitude) - apogee_target, "--k", "Required");
-plot([my_drag_area*1e4, my_drag_area*1e4, 0], [0, current_apogee_reduction, current_apogee_reduction]);
+plot([my_area*1e4, my_area*1e4, 0], [0, current_apogee_reduction, current_apogee_reduction]);
 text(0.5, current_apogee_reduction+25, sprintf('%.0f', current_apogee_reduction), "Color", "red");
 %yline(max(simdata.Altitude) - apogee_target, "--k", "Required");
-xlabel("Fully-extended drag area");
+xlabel("Fully-extended area");
 xsecondarylabel("cm^2");
 ylabel("Apogee reduction");
 ysecondarylabel("m");
@@ -41,5 +41,5 @@ effort_figure.WindowStyle = 'normal';
 effort_figure.Units = "pixels";
 effort_figure.Position = [0 0 400 300];
 
-print2size(effort_figure, fullfile(graphics_path, "effort_curve.pdf"), 1.5*[420 250]);
+% print2size(effort_figure, fullfile(graphics_path, "effort_curve.pdf"), 1.5*[420 250]);
 % print2size(effort_figure, fullfile(graphics_path, "effort_curve.pdf"), 1.5*[420 250]);
