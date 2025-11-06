@@ -18,7 +18,7 @@ areas = cases.const_brake * vehicle_data.plate_drag_area;
 simouts = sim(simins, UseFastRestart = "on");
 efforts = simouts(1).apogee - [simouts.apogee];
 
-my_area = (0.00264516) * 2; % m2
+my_area = 0.8*(0.00264516) * 2; % m2
 areas_smooth = linspace(areas(1), areas(end), 100);
 efforts_smooth = interp1(areas, efforts, areas_smooth);
 [~, areas_smooth_index] = min(abs(areas_smooth - my_area));
@@ -31,7 +31,7 @@ plot(1e4 * areas, efforts, "+");
 plot([my_area*1e4, my_area*1e4, 0], [0, current_apogee_reduction, current_apogee_reduction]);
 text(0.5, current_apogee_reduction+25, sprintf('%.0f', current_apogee_reduction), "Color", "red");
 %yline(max(simdata.Altitude) - apogee_target, "--k", "Required");
-xlabel("Fully-extended area");
+xlabel("Fully-extended Cda");
 xsecondarylabel("cm^2");
 ylabel("Apogee reduction");
 ysecondarylabel("m");
