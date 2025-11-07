@@ -63,7 +63,8 @@ air.h = air.T*air.Cp;
 % Control volume
 elecBay = initControlVolume(1.263*10^-3, air);
 % Other parameters
-ventHoleDiams = [1/8, 5/32, 3/16, 7/32, 1/4]; % in inches
+holeSizes = ["1/8", "5/32", "3/16", "7/32", "1/4"]; % in strings for plot legend
+ventHoleDiams = arrayfun(@(s) str2num(s), holeSizes); % in inches
 ventHoleDiams = ventHoleDiams*0.0254;   % convert to meters
 Avent = pi/4 * ventHoleDiams.^2;
 % set timer parameters
@@ -114,7 +115,7 @@ for i=1:length(ventHoleDiams)
 end
 % plot results
 figure();
-plotPress(time, allSimTime, allPressure, allVerr, data, "Airbrakes Electronics Bay", ventHoleDiams);
+plotPress(time, allSimTime, allPressure, allVerr, data, "Airbrakes Electronics Bay", holeSizes);
 
 %% Functions
 function controlVolume = initControlVolume(volume, air)
@@ -128,7 +129,7 @@ function controlVolume = initControlVolume(volume, air)
 end
 function [mdot, Hdot] = ventCalc(V1, air, Avent)
     rho = min(air.rho, V1.rho);
-    v = sign(V1.P-air.P)*sqrt(2*(V1.P - air.P)/rho);
+    v = sign(V1.P-air.P)*sqrt(2*abs(V1.P - air.P)/rho);
     mdot = v*rho*Avent;
     if v >= 0
         Hdot = mdot*V1.h;
@@ -145,21 +146,21 @@ function Vol = updateVolume(Vol, dM, dH, air)
     Vol.rho = Vol.M/Vol.V;
     Vol.P = Vol.T*air.R*Vol.rho;
 end
-function plotPress(time, simTime, pressures, Verr, data, titleStr, holeDiams)
+function plotPress(time, simTime, pressures, Verr, data, titleStr, holeStrs)
     subplot(2, 1, 1);
     plot(time, data.("Air pressure")*10^-3, "b");
     hold on;
     for i=1:size(simTime,2)
-        plot(simTime(:,i), pressures(:,i), "r");
+        plot(simTime(:,i), pressures(:,i));
     end
-    legend(["Ambient pressure", strcat(string(holeDiams), "in")]);
     hold off;
+    legend(["Ambient pressure", strcat(holeStrs, "in")]);
     xlim([0, simTime(end)]);
     ylabel("Pressure [kPa]");
     title(titleStr);
     subplot(2, 1, 2)
     for i=1:size(simTime,2)
-        plot(simTime(:,i), Verr(i,:), "r");
+        plot(simTime(:,i), Verr(i,:)');
     end
     xlim([0, simTime(end)]);
     xlabel("Time [s]");
