@@ -61,23 +61,60 @@ air.rho = air.P/(air.R*air.T);
 air.Cp = 1.005;
 air.h = air.T*air.Cp;
 % Control volume
-elecBay = initControlVolume(1, air); %REPLACE VOLUME WITH REAL NUMBER
+elecBay = initControlVolume(1.263*10^-3, air);
 % Other parameters
-ventHoleDiams = [1/16, 1/8, 3/16, 1/4]; % in inches REPLACE WITH GOOD NUMBERS
+ventHoleDiams = [1/8, 5/32, 3/16, 7/32, 1/4]; % in inches
 ventHoleDiams = ventHoleDiams*0.0254;   % convert to meters
 Avent = pi/4 * ventHoleDiams.^2;
-L = 0.05;
-f_L = 0.05;
-D_L = sqrt((4*A1/pi)); % effective pipe diameter
-k1 = 1; % pipe exit coefficient
-k2 = 0.5; % pipe entrance coefficient
-C_L = 1+k1+k2+f_L*(L/D_L);
 % set timer parameters
 t_end = time(end);
 dt = 5*10^-3;
 
 %% Simulate the electronics bay
-% PUT UPDATED SIMULATION CODE HERE
+% Overall timer and data collection
+allSimTime = [];
+allPressure = [];
+allVerr = [];
+
+% for each vent hole size
+for i=1:length(ventHoleDiams)
+    % setup timer and data collection
+    t = 0;
+    simTime = [];
+    pressure = [];
+    Verr = [];
+
+    % iterate
+    while (t <= t_end)
+        % Current hole size under consideration
+        holeArea = Avent(i);
+
+        % Update ambient conditions
+        air.P = Pdata(t);
+        air.T = Tdata(t);
+        air.rho = air.P/(air.R*air.T);
+        % Vent hole flows
+        [mdot, Hdot] = ventCalc(elecBay, air, holeArea);
+        % Iterate mass and enthalpy
+        dM = -mdot*dt;
+        dH = -Hdot*dt;
+        elecBay = updateVolume(elecBay, dM, dH, air);
+        pressure = [pressure; elecBay.P];
+        Verr = [Verr, 100*(elecBay.P-air.P)/air.P];
+        % Iterate timer
+        simTime = [simTime; t];
+        disp(t);
+        t = t + dt;
+    end
+
+    % add to overall arrays
+    allSimTime = [allSimTime, simTime];
+    allPressure = [allPressure, pressure];
+    allVerr = [allVerr; Verr];
+end
+% plot results
+figure();
+plotPress(time, allSimTime, allPressure, allVerr, data, "Airbrakes Electronics Bay", ventHoleDiams);
 
 %% Functions
 function controlVolume = initControlVolume(volume, air)
@@ -88,24 +125,6 @@ function controlVolume = initControlVolume(volume, air)
     controlVolume.M = volume*air.rho; % total air mass
     controlVolume.H = air.T*air.Cp*controlVolume.M; % total enthalpy
     controlVolume.h = controlVolume.H/controlVolume.M; % specific enthalpy
-end
-function [mdot, Hdot] = flowCalc(V1, V2, V3, A1, A2, C_L)
-    rho1 = min(V1.rho, V3.rho);
-    rho2 = min(V2.rho, V3.rho);
-    v1 = sign(V1.P - V3.P)*sqrt(2*abs(V1.P-V3.P)/(rho1*C_L));
-    v2 = sign(V3.P - V2.P)*sqrt(2*abs(V3.P-V2.P)/(rho2*C_L));
-    mdot(1) = v1*A1*rho1;
-    mdot(2) = v2*A2*rho2;
-    if v1 >= 0
-        Hdot(1) = mdot(1)*V1.h;
-    else
-        Hdot(1) = mdot(1)*V3.h;
-    end
-    if v2 >= 0
-        Hdot(2) = mdot(2)*V3.h;
-    else
-        Hdot(2) = mdot(2)*V2.h;
-    end
 end
 function [mdot, Hdot] = ventCalc(V1, air, Avent)
     rho = min(air.rho, V1.rho);
@@ -126,36 +145,22 @@ function Vol = updateVolume(Vol, dM, dH, air)
     Vol.rho = Vol.M/Vol.V;
     Vol.P = Vol.T*air.R*Vol.rho;
 end
-function plotPuck(time, simTime, pressures, Verr, data, titleStr)
+function plotPress(time, simTime, pressures, Verr, data, titleStr, holeDiams)
     subplot(2, 1, 1);
     plot(time, data.("Air pressure")*10^-3, "b");
     hold on;
-    plot(simTime, pressures(:,1), "r");
-    plot(simTime, pressures(:,2), "m");
-    plot(simTime, pressures(:,3), "k");
-    legend("Ambient pressure", "CV 1", "CV 2", "CV 3");
+    for i=1:size(simTime,2)
+        plot(simTime(:,i), pressures(:,i), "r");
+    end
+    legend(["Ambient pressure", strcat(string(holeDiams), "in")]);
     hold off;
     xlim([0, simTime(end)]);
     ylabel("Pressure [kPa]");
     title(titleStr);
     subplot(2, 1, 2)
-    plot(simTime, Verr)
-    xlim([0, simTime(end)]);
-    xlabel("Time [s]");
-    ylabel("P1 error [%]");
-end
-function plotConv(time, simTime, pressures, Verr, data, titleStr)
-    subplot(2, 1, 1);
-    plot(time, data.("Air pressure")*10^-3, "b");
-    hold on;
-    plot(simTime, pressures, "r");
-    legend("Ambient pressure", "Avbay pressure");
-    hold off;
-    xlim([0, simTime(end)]);
-    ylabel("Pressure [kPa]");
-    title(titleStr);
-    subplot(2, 1, 2)
-    plot(simTime, Verr)
+    for i=1:size(simTime,2)
+        plot(simTime(:,i), Verr(i,:), "r");
+    end
     xlim([0, simTime(end)]);
     xlabel("Time [s]");
     ylabel("P1 error [%]");
