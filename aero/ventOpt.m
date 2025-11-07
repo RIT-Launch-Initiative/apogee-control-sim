@@ -154,14 +154,16 @@ function plotPress(time, simTime, pressures, Verr, data, titleStr, holeStrs)
         plot(simTime(:,i), pressures(:,i));
     end
     hold off;
-    legend(["Ambient pressure", strcat(holeStrs, "in")]);
+    legend(["Ambient pressure", strcat(holeStrs, " in vent")],"Location","bestoutside");
     xlim([0, simTime(end)]);
     ylabel("Pressure [kPa]");
     title(titleStr);
     subplot(2, 1, 2)
+    hold on
     for i=1:size(simTime,2)
-        plot(simTime(:,i), Verr(i,:)');
+        plot(simTime(:,i), Verr(i,:));
     end
+    hold off
     xlim([0, simTime(end)]);
     xlabel("Time [s]");
     ylabel("P1 error [%]");
