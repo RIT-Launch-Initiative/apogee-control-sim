@@ -42,12 +42,12 @@ TBPath = "..\data\TB-1.ork";
 if ~isfile(TBPath)
     error("Error: %s not on path", TBPath);
 end
-rocket = openrocket(TBPath);    % use either TB-1 or IREC
-sim = rocket.sims("15mph_URRG");% name changes for either TB-1 or IREC
+rocket = openrocket(IRECPath);    % use either TB-1 or IREC
+sim = rocket.sims("15mph-Midland");% name changes for either TB-1 or IREC
 openrocket.simulate(sim);
 % Get data and trim
 simData = openrocket.get_data(sim);
-data_range = timerange(eventfilter("LAUNCH"), eventfilter("MAIN"), "openleft");
+data_range = timerange(eventfilter("LAUNCH"), eventfilter("APOGEE"), "openleft");
 data = simData(data_range, [("Air pressure"), ("Air temperature")]);
 time = round(seconds(data.Time), 3);
 Pdata = griddedInterpolant(time, data.("Air pressure")*10^-3); % interpolants for sim loop
@@ -85,6 +85,8 @@ for i=1:length(ventHoleDiams)
     pressure = [];
     Verr = [];
 
+    thisElecBay = elecBay;  % create a control volume just for this iteration
+
     % iterate
     while (t <= t_end)
         % Current hole size under consideration
@@ -95,13 +97,13 @@ for i=1:length(ventHoleDiams)
         air.T = Tdata(t);
         air.rho = air.P/(air.R*air.T);
         % Vent hole flows
-        [mdot, Hdot] = ventCalc(elecBay, air, holeArea);
+        [mdot, Hdot] = ventCalc(thisElecBay, air, holeArea);
         % Iterate mass and enthalpy
         dM = -mdot*dt;
         dH = -Hdot*dt;
-        elecBay = updateVolume(elecBay, dM, dH, air);
-        pressure = [pressure; elecBay.P];
-        Verr = [Verr, 100*(elecBay.P-air.P)/air.P];
+        thisElecBay = updateVolume(thisElecBay, dM, dH, air);
+        pressure = [pressure; thisElecBay.P];
+        Verr = [Verr, 100*(thisElecBay.P-air.P)/air.P];
         % Iterate timer
         simTime = [simTime; t];
         disp(t);
@@ -147,11 +149,12 @@ function Vol = updateVolume(Vol, dM, dH, air)
     Vol.P = Vol.T*air.R*Vol.rho;
 end
 function plotPress(time, simTime, pressures, Verr, data, titleStr, holeStrs)
+    colors = orderedcolors("gem");
     subplot(2, 1, 1);
-    plot(time, data.("Air pressure")*10^-3, "b");
+    plot(time, data.("Air pressure")*10^-3, "k");
     hold on;
     for i=1:size(simTime,2)
-        plot(simTime(:,i), pressures(:,i));
+        plot(simTime(:,i), pressures(:,i),"Color",colors(i,:));
     end
     hold off;
     legend(["Ambient pressure", strcat(holeStrs, " in vent")],"Location","bestoutside");
@@ -161,7 +164,7 @@ function plotPress(time, simTime, pressures, Verr, data, titleStr, holeStrs)
     subplot(2, 1, 2)
     hold on
     for i=1:size(simTime,2)
-        plot(simTime(:,i), Verr(i,:));
+        plot(simTime(:,i), Verr(i,:),"Color",colors(i,:));
     end
     hold off
     xlim([0, simTime(end)]);
