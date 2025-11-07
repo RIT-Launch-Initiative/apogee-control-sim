@@ -67,6 +67,8 @@ holeSizes = ["1/8", "5/32", "3/16", "7/32", "1/4"]; % in strings for plot legend
 ventHoleDiams = arrayfun(@(s) str2num(s), holeSizes); % in inches
 ventHoleDiams = ventHoleDiams*0.0254;   % convert to meters
 Avent = pi/4 * ventHoleDiams.^2;
+Avent = [Avent, 2*Avent];
+holeSizes = [holeSizes, strcat("2x ", holeSizes)];
 % set timer parameters
 t_end = time(end);
 dt = 5*10^-3;
@@ -78,7 +80,7 @@ allPressure = [];
 allVerr = [];
 
 % for each vent hole size
-for i=1:length(ventHoleDiams)
+for i=1:length(Avent)
     % setup timer and data collection
     t = 0;
     simTime = [];
@@ -149,15 +151,15 @@ function Vol = updateVolume(Vol, dM, dH, air)
     Vol.P = Vol.T*air.R*Vol.rho;
 end
 function plotPress(time, simTime, pressures, Verr, data, titleStr, holeStrs)
-    colors = orderedcolors("gem");
+    colors = [orderedcolors("gem");orderedcolors("meadow")];
     subplot(2, 1, 1);
-    plot(time, data.("Air pressure")*10^-3, "k");
+    plot(time, data.("Air pressure")*10^-3, "k","LineWidth",1.5);
     hold on;
     for i=1:size(simTime,2)
         plot(simTime(:,i), pressures(:,i),"Color",colors(i,:));
     end
     hold off;
-    legend(["Ambient pressure", strcat(holeStrs, " in vent")],"Location","bestoutside");
+    legend(["Ambient pressure", strcat(holeStrs, "'' vent")],"Location","bestoutside");
     xlim([0, simTime(end)]);
     ylabel("Pressure [kPa]");
     title(titleStr);
