@@ -152,18 +152,18 @@ function Vol = updateVolume(Vol, dM, dH, air)
 end
 function plotPress(time, simTime, pressures, Verr, data, titleStr, holeStrs)
     colors = [orderedcolors("gem");orderedcolors("meadow")];
-    subplot(2, 1, 1);
+    tcl = tiledlayout(2,1, 'TileSpacing', 'compact');
+    title(tcl, titleStr);
+    nexttile
     plot(time, data.("Air pressure")*10^-3, "k","LineWidth",1.5);
     hold on;
     for i=1:size(simTime,2)
         plot(simTime(:,i), pressures(:,i),"Color",colors(i,:));
     end
     hold off;
-    legend(["Ambient pressure", strcat(holeStrs, "'' vent")],"Location","bestoutside");
     xlim([0, simTime(end)]);
     ylabel("Pressure [kPa]");
-    title(titleStr);
-    subplot(2, 1, 2)
+    nexttile
     hold on
     for i=1:size(simTime,2)
         plot(simTime(:,i), Verr(i,:),"Color",colors(i,:));
@@ -172,4 +172,8 @@ function plotPress(time, simTime, pressures, Verr, data, titleStr, holeStrs)
     xlim([0, simTime(end)]);
     xlabel("Time [s]");
     ylabel("P1 error [%]");
+    lg = legend(nexttile(1), ...
+        ["Ambient pressure", strcat(holeStrs, "'' vent")], ...
+        "Location","eastoutside");
+    lg.Layout.Tile = "east";
 end
