@@ -26,7 +26,7 @@
 % effectively similar to a conventional avionics bay.
 %
 % The electronics bay is treated as a single, isolated volume which vents
-% air to outside. Pressure losses through the vent hole is assumed to be
+% air to outside. Pressure losses through the vent hole are assumed to be
 % equal to the dynamic pressure.
 
 %% Setup
@@ -34,7 +34,7 @@ clc
 clear;
 close all;
 % Run a test OR sim of either IREC 2026 or TB-1
-IRECPath = "..\data\IREC-2026-N3800.ork"; 
+IRECPath = "..\data\IREC-2026-M3464.ork"; 
 if ~isfile(IRECPath)
     error("Error: %s not on path", IRECPath);
 end
@@ -63,12 +63,12 @@ air.h = air.T*air.Cp;
 % Control volume
 elecBay = initControlVolume(1.263*10^-3, air);
 % Other parameters
-holeSizes = ["1/8", "5/32", "3/16", "7/32", "1/4"]; % in strings for plot legend
-ventHoleDiams = arrayfun(@(s) str2num(s), holeSizes); % in inches
-ventHoleDiams = ventHoleDiams*0.0254;   % convert to meters
+ventHoleDiams = 3:0.5:6.5; % in mm;
+holeSizes = string(ventHoleDiams); % in string for plot legends
+ventHoleDiams = ventHoleDiams/1000;   % convert to meters
 Avent = pi/4 * ventHoleDiams.^2;
-Avent = [Avent, 2*Avent];
-holeSizes = [holeSizes, strcat("2x ", holeSizes)];
+Avent = [Avent, 2*Avent, 3*Avent];
+holeSizes = [holeSizes, strcat("2x ", holeSizes), strcat("3x ", holeSizes)];
 % set timer parameters
 t_end = time(end);
 dt = 5*10^-3;
@@ -151,7 +151,8 @@ function Vol = updateVolume(Vol, dM, dH, air)
     Vol.P = Vol.T*air.R*Vol.rho;
 end
 function plotPress(time, simTime, pressures, Verr, data, titleStr, holeStrs)
-    colors = [orderedcolors("gem");orderedcolors("meadow")];
+    colors = [orderedcolors("gem");orderedcolors("meadow");
+        orderedcolors("dye");orderedcolors("reef");orderedcolors("earth")];
     tcl = tiledlayout(2,1, 'TileSpacing', 'compact');
     title(tcl, titleStr);
     nexttile
@@ -176,4 +177,32 @@ function plotPress(time, simTime, pressures, Verr, data, titleStr, holeStrs)
         ["Ambient pressure", strcat(holeStrs, "'' vent")], ...
         "Location","eastoutside");
     lg.Layout.Tile = "east";
+
+    
+    holeSizeNums = arrayfun(@(s) str2num(s), holeStrs(1:end/3));
+    % get maximum errors for each hole configuration
+    maxErrors = zeros(1,size(Verr,1));
+    avgErrors = zeros(1,size(Verr,1));
+    for i=1:size(Verr,1)
+        maxErrors(i) = max(Verr(i,:));
+        avgErrors(i) = sum(Verr(i,:)) / length(Verr(i,:));
+    end
+
+    figure(2)
+    title("Vent Hole Comparison")
+    hold on
+    grid on
+    grid minor
+    plot(holeSizeNums, maxErrors(1:end/3), "r", "LineWidth",1)
+    plot(holeSizeNums, maxErrors(end/3+1:2*end/3), "g", "LineWidth",1)
+    plot(holeSizeNums, maxErrors(2*end/3+1:end), "b", "LineWidth",1)
+    plot([3,6.5],[1.5,1.5],"k","LineWidth",1)
+    plot([4.5,4.5],[0,10],"k--","LineWidth",1)
+    scatter(holeSizeNums(4),maxErrors(12),"k","filled")
+    xlabel("Vent hole diameter (mm)")
+    ylabel("Maximum ambient pressure error (%)")
+
+    legend(["Single Vent Hole", "2x Vent Holes", "3x Vent Holes", ...
+        "Allowable Apogee Error","Selected Vent Holes"]);
+
 end
