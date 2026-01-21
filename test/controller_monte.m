@@ -69,7 +69,7 @@ switch filt_under_test
         simin = structs2inputs(simin, alt_filter_params("designed"));
         simin = structs2inputs(simin, accel_filter_params("designed"));
     case "kalman"
-        params = kalman_filter_params("alt-accel-bias");
+        params = kalman_filter_params("accel-bias");
 
         % This is not strictly accurate;
         % - each simulation will have a different initial state

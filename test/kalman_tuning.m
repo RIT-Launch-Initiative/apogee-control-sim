@@ -6,7 +6,7 @@ alt_p.GROUND_LEVEL = orkopts.getLaunchAltitude();
 
 accel_p = accel_params("lsm6dsl");
 accel_p.GRAVITY = 9.81;
-kalm_p = kalman_filter_params("alt-accel-bias");
+kalm_p = kalman_filter_params("accel-bias");
 
 % orkopts.setLaunchRodAngle(deg2rad(20));
 orkdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE");
@@ -25,7 +25,7 @@ inputs.pitch = orkdata(:, "Vertical orientation (zenith)");
 simin = structs2inputs(pfullfile("sim", "sim_kalman"), kalm_p, alt_p, accel_p);
 simin = structs2inputs(simin, inputs);
 
-[process, measure] = tune_cov(simin, orkdata, [0 0 NaN NaN], [18.49 * 0.112^2 8e-4]);
+[process, measure] = tune_cov(simin, orkdata, [0 NaN NaN NaN], [18.49 * 0.112^2 8e-4]);
 % [process, measure] = tune_cov(simin, orkdata, [1e-6 1e-3 10 1], [0.77 0.1].^2);
 % [process, measure] = tune_cov(simin, orkdata, [0 0 NaN 1e-50], [NaN 1e50]);
 % [process, measure] = tune_cov(simin, orkdata, [1e-6 1e-3 NaN NaN], [NaN NaN]);
@@ -33,8 +33,8 @@ simin = structs2inputs(simin, inputs);
 fprintf("Tuned process covariance: %s \n", mat2str(process));
 fprintf("Tuned measurement covariance: %s \n", mat2str(measure));
 
-simin = simin.setVariable(kalm_process_cov = diag(process));
-simin = simin.setVariable(kalm_measure_cov = diag(measure));
+simin = simin.setVariable(kalm_process_cov = diagcov(process));
+simin = simin.setVariable(kalm_measure_cov = diagcov(measure));
 
 simout = sim(simin);
 logs = extractTimetable(simout.logsout);
@@ -100,15 +100,15 @@ function [process, measure] = tune_cov(simin, orkdata, diag_process, diag_measur
     init_val = ones(1, n_inputs);
     [init_pcov, init_mcov] = assignval(init_val);
 
-    simin = simin.setVariable(kalm_process_cov = diag(init_pcov));
-    simin = simin.setVariable(kalm_measure_cov = diag(init_mcov));
+    simin = simin.setVariable(kalm_process_cov = diagcov(init_pcov));
+    simin = simin.setVariable(kalm_measure_cov = diagcov(init_mcov));
     simin = simin.setModelParameter(SimulationMode = "accelerator", FastRestart = "on");
 
     simout = sim(simin);
     compare_data = retime(orkdata, seconds(simout.tout), "linear");
 
-    opts = optimset(Display = "iter", TolX = 1e-4, TolFun = 1e-4, ...
-        PlotFcns = {@optimplotx}, MaxIter = 200);
+    opts = optimset(Display = "iter", TolX = 1e-6, TolFun = 1e-6, ...
+        PlotFcns = {@optimplotx}, MaxIter = 500);
     % test_signal = "accel_est";
     % ref_signal = "Vertical acceleration";
 
@@ -120,13 +120,13 @@ function [process, measure] = tune_cov(simin, orkdata, diag_process, diag_measur
     function cost = estimator_cost(val)
         [pcov, mcov] = assignval(val);
         simin_step = simin;
-        simin_step = simin_step.setVariable(kalm_process_cov = diag(pcov));
-        simin_step = simin_step.setVariable(kalm_measure_cov = diag(mcov));
+        simin_step = simin_step.setVariable(kalm_process_cov = diagcov(pcov));
+        simin_step = simin_step.setVariable(kalm_measure_cov = diagcov(mcov));
 
-        % compare_interval = timerange(seconds(3), seconds(15));
-        compare_interval = timerange(seconds(-Inf), seconds(Inf));
-        % weights = [0 1 0];
+        compare_interval = timerange(seconds(3), seconds(15));
+        % compare_interval = timerange(seconds(-Inf), seconds(Inf));
         weights = [0 1 0];
+        % weights = [1 1 1];
 
         % rng(2);
         simout_step = sim(simin_step);
@@ -142,8 +142,8 @@ function [process, measure] = tune_cov(simin, orkdata, diag_process, diag_measur
     end
 
     function [pcov, mcov] = assignval(val)
-        % val = 1.1 .^ val;
-        val = val.^2 + 1e-20;
+        val = 10 .^ (val/20);
+        % val = val.^2 + 1e-20;
 
         pcov = diag_process;
         mcov = diag_measure;

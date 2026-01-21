@@ -106,6 +106,7 @@ nexttile; hold on; grid on;
 plot(logs.Time, logs.velocity_est - logs.velocity(:,2));
 ylabel("Error");
 ysecondarylabel("m/s");
+legend;
 
 nexttile; hold on; grid on;
 plot(logs.Time, logs.acceleration(:,2), true_args{:});
@@ -114,13 +115,13 @@ plot(logs.Time, logs.accel_est, est_args{:});
 ylabel("Vertical acceleration");
 ysecondarylabel("m/s^2");
 xlabel("Time");
+legend;
 
 nexttile; hold on; grid on;
 plot(logs.Time, logs.accel_est - logs.acceleration(:,2));
 ylabel("Error");
 ysecondarylabel("m/s^2");
 xlabel("Time");
-
 
 figure(name = "Effort history");
 layout = tiledlayout(3,1);
@@ -140,3 +141,19 @@ plot(logs.Time, logs.extension, "-", SeriesIndex = 1, DisplayName = "Extension")
 legend;
 ylabel("Airbrake extension");
 xlabel("Time");
+
+figure(name = "Filter tuning")
+layout = tiledlayout(3, 1);
+n_sigma = 3;
+
+nexttile; hold on; grid on;
+plot(logs.Time, logs.position(:,2) - logs.altitude_est);
+plot(logs.Time, [-1, 1] .* n_sigma .* sqrt(logs.estimate_cov(:, 1, 1)), "--k");
+
+nexttile; hold on; grid on;
+plot(logs.Time, logs.velocity(:,2) - logs.velocity_est);
+plot(logs.Time, [-1, 1] .* n_sigma .* sqrt(logs.estimate_cov(:, 2, 2)), "--k");
+
+nexttile; hold on; grid on;
+plot(logs.Time, logs.acceleration(:,2) - logs.accel_est);
+plot(logs.Time, [-1, 1] .* n_sigma .* sqrt(logs.estimate_cov(:, 3, 3)), "--k");
