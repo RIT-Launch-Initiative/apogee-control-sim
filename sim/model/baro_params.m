@@ -5,6 +5,7 @@ function params = baro_params(mode)
     params.BARO_RATE = 100;
     switch mode
         case "ideal"
+            params.BARO_RATE = 1e3;
             params.BARO_COV = 0;
             params.BARO_LSB = 1e-20;
         case "bmp388"

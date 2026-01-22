@@ -5,6 +5,7 @@ function params = accel_params(mode)
     params.ACCEL_RATE = 100;
     switch mode
         case "ideal"
+            params.ACCEL_RATE = 1e3;
             params.ACCEL_COV = 0;
             params.ACCEL_BIAS = 0;
             params.ACCEL_LSB = 1e-20;

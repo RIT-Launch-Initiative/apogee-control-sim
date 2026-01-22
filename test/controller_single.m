@@ -142,18 +142,39 @@ legend;
 ylabel("Airbrake extension");
 xlabel("Time");
 
-figure(name = "Filter tuning")
-layout = tiledlayout(3, 1);
+figure(name = "Covariance")
+layout = tiledlayout(4, 1);
 n_sigma = 3;
 
 nexttile; hold on; grid on;
 plot(logs.Time, logs.position(:,2) - logs.altitude_est);
 plot(logs.Time, [-1, 1] .* n_sigma .* sqrt(logs.estimate_cov(:, 1, 1)), "--k");
+ylabel("Altitude [m]")
 
 nexttile; hold on; grid on;
 plot(logs.Time, logs.velocity(:,2) - logs.velocity_est);
 plot(logs.Time, [-1, 1] .* n_sigma .* sqrt(logs.estimate_cov(:, 2, 2)), "--k");
+ylabel("Velocity [m/s]")
 
 nexttile; hold on; grid on;
 plot(logs.Time, logs.acceleration(:,2) - logs.accel_est);
 plot(logs.Time, [-1, 1] .* n_sigma .* sqrt(logs.estimate_cov(:, 3, 3)), "--k");
+ylabel("Acceleration [m/s^2]")
+
+nexttile; hold on; grid on;
+plot(logs.Time, (logs.body_accel - logs.acceleration(:,2)) - logs.state_est(:, 4));
+plot(logs.Time, [-1, 1] .* n_sigma .* sqrt(logs.estimate_cov(:, 4, 4)), "--k");
+ylabel("Bias [m/s^2]")
+
+figure(name = "Innovation")
+layout = tiledlayout(2, 1);
+
+nexttile; hold on; grid on;
+plot(logs.Time, logs.innovation(:, 1));
+plot(logs.Time, [-1, 1] .* n_sigma .* sqrt(logs.innovation_cov(:, 1, 1)), "--k");
+ylabel("Altitude [m]")
+
+nexttile; hold on; grid on;
+plot(logs.Time, logs.innovation(:, 2));
+plot(logs.Time, [-1, 1] .* n_sigma .* sqrt(logs.innovation_cov(:, 2, 2)), "--k");
+ylabel("Acceleration [m/s^2]")
