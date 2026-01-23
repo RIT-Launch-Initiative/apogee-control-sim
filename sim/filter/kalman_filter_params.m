@@ -22,7 +22,7 @@ function params = kalman_filter_params(mode)
     switch mode
         case "accel-bias"
         % manually tuned
-            params.kalm_process_cov = diagcov([0 0 10 0.1]); 
+            params.kalm_process_cov = diagcov([0.05 0.1 5 0.01]); 
             params.kalm_meas_cov = [0.5044, -0.0144; 
                 -0.0144, 0.0013]; 
         case "alt-accel"

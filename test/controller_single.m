@@ -78,11 +78,14 @@ logs = fillmissing(logs, "previous");
 true_args = {"DisplayName", "True"};
 meas_args = {"DisplayName", "Measured"};
 est_args = {"DisplayName", "Estimated"};
+cov_args = {"LineStyle", "--", "HandleVisibility", "off", "Color", "k"};
+n_sigma = 3;
 
 figure(name = "State estimation");
-layout = tiledlayout(3,2);
-layout.TileIndexing = "rowmajor";
+layout = tiledlayout(4,3);
+layout.TileIndexing = "columnmajor";
 
+%% State plots
 nexttile; hold on; grid on;
 plot(logs.Time, logs.position(:,2), true_args{:});
 % plot(logs.Time, logs.altitude_meas, meas_args{:});
@@ -91,22 +94,11 @@ ylabel("Altitude");
 ysecondarylabel("m AGL");
 
 nexttile; hold on; grid on;
-plot(logs.Time, logs.altitude_est - logs.position(:,2));
-ylabel("Error");
-ysecondarylabel("m");
-
-nexttile; hold on; grid on;
 plot(logs.Time, logs.velocity(:,2), true_args{:});
 % plot(logs.Time, logs.velocity_meas, meas_args{:});
 plot(logs.Time, logs.velocity_est, est_args{:});
 ylabel("Vertical velocity");
 ysecondarylabel("m/s");
-
-nexttile; hold on; grid on;
-plot(logs.Time, logs.velocity_est - logs.velocity(:,2));
-ylabel("Error");
-ysecondarylabel("m/s");
-legend;
 
 nexttile; hold on; grid on;
 plot(logs.Time, logs.acceleration(:,2), true_args{:});
@@ -118,11 +110,58 @@ xlabel("Time");
 legend;
 
 nexttile; hold on; grid on;
-plot(logs.Time, logs.accel_est - logs.acceleration(:,2));
-ylabel("Error");
+plot(logs.Time, logs.state_est(:, 4), est_args{:});
+plot(logs.Time, logs.body_accel - logs.acceleration(:,2), true_args{:});
+ylabel("Accelerometer bias");
 ysecondarylabel("m/s^2");
 xlabel("Time");
+legend;
 
+%% Error plots
+nexttile; hold on; grid on;
+plot(logs.Time, logs.altitude_est - logs.position(:,2));
+plot(logs.Time, [-1, 1] .* n_sigma .* sqrt(logs.estimate_cov(:, 1, 1)), ...
+    cov_args{:});
+ylabel("Error");
+ysecondarylabel("m");
+
+
+nexttile; hold on; grid on;
+plot(logs.Time, logs.velocity_est - logs.velocity(:,2));
+plot(logs.Time, [-1, 1] .* n_sigma .* sqrt(logs.estimate_cov(:, 2, 2)), ...
+    cov_args{:});
+ylabel("Error");
+ysecondarylabel("m/s");
+legend;
+
+nexttile; hold on; grid on;
+plot(logs.Time, logs.accel_est - logs.acceleration(:,2));
+plot(logs.Time, [-1, 1] .* n_sigma .* sqrt(logs.estimate_cov(:, 3, 3)), ...
+    cov_args{:});
+ylabel("Error");
+ysecondarylabel("m/s^2");
+
+nexttile; hold on; grid on;
+plot(logs.Time, logs.state_est(:, 4) - (logs.body_accel - logs.acceleration(:,2)) );
+plot(logs.Time, [-1, 1] .* n_sigma .* sqrt(logs.estimate_cov(:, 4, 4)), ...
+    cov_args{:});
+ysecondarylabel("m/s^2");
+ylabel("Error");
+xlabel("Time");
+
+nexttile([2 1]); hold on; grid on;
+plot(logs.Time, logs.innovation(:, 1));
+plot(logs.Time, [-1, 1] .* n_sigma .* sqrt(logs.innovation_cov(:, 1, 1)), "--k");
+ylabel("Altitude [m]")
+
+nexttile([2 1]); hold on; grid on;
+plot(logs.Time, logs.innovation(:, 2));
+plot(logs.Time, [-1, 1] .* n_sigma .* sqrt(logs.innovation_cov(:, 2, 2)), "--k");
+ylabel("Acceleration [m/s^2]")
+
+%% Innovation plots
+
+%{
 figure(name = "Effort history");
 layout = tiledlayout(3,1);
 
@@ -141,7 +180,9 @@ plot(logs.Time, logs.extension, "-", SeriesIndex = 1, DisplayName = "Extension")
 legend;
 ylabel("Airbrake extension");
 xlabel("Time");
+%}
 
+%{
 figure(name = "Covariance")
 layout = tiledlayout(4, 1);
 n_sigma = 3;
@@ -162,19 +203,7 @@ plot(logs.Time, [-1, 1] .* n_sigma .* sqrt(logs.estimate_cov(:, 3, 3)), "--k");
 ylabel("Acceleration [m/s^2]")
 
 nexttile; hold on; grid on;
-plot(logs.Time, (logs.body_accel - logs.acceleration(:,2)) - logs.state_est(:, 4));
+plot(logs.Time, () - logs.state_est(:, 4));
 plot(logs.Time, [-1, 1] .* n_sigma .* sqrt(logs.estimate_cov(:, 4, 4)), "--k");
 ylabel("Bias [m/s^2]")
-
-figure(name = "Innovation")
-layout = tiledlayout(2, 1);
-
-nexttile; hold on; grid on;
-plot(logs.Time, logs.innovation(:, 1));
-plot(logs.Time, [-1, 1] .* n_sigma .* sqrt(logs.innovation_cov(:, 1, 1)), "--k");
-ylabel("Altitude [m]")
-
-nexttile; hold on; grid on;
-plot(logs.Time, logs.innovation(:, 2));
-plot(logs.Time, [-1, 1] .* n_sigma .* sqrt(logs.innovation_cov(:, 2, 2)), "--k");
-ylabel("Acceleration [m/s^2]")
+%}
