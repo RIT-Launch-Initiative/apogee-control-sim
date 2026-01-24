@@ -14,11 +14,7 @@ switch rkt_option
         sim_name = "15mph_URRG";
         apogee_target = 1350; % [m]
     case 3
-        rocket_file = "IREC-2026-M3464.ork";
-        sim_name = "15mph-Midland";
-        apogee_target = 2000; % [m]
-    case 4
-        rocket_file = "IREC-2026-N3800.ork";
+        rocket_file = "RISK.ork";
         sim_name = "15mph-Midland";
         apogee_target = 3048; % [m]
     otherwise
@@ -67,5 +63,5 @@ else
     vel_max = orkdata{eventfilter("BURNOUT"), "Vertical velocity"}; % Velocity for 0.8Ma
     alt_start = orkdata{eventfilter("BURNOUT"), "Altitude"}; % Altitude at which rocket falls below 0.8Ma
 end
-vel_max = vel_max - 0; % Helps with typical_variation
+vel_max = vel_max - 0; % Helps if typical_variation fails from not finding start time
 clear orkdata mach_at_burnout
