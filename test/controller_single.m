@@ -17,14 +17,15 @@ inits = get_initial_data(orkdata);
 
 switch sensor_mode
     case "noisy"
-        simin = structs2inputs(simin, accel_params("lsm6dsl"));
-        simin = structs2inputs(simin, baro_params("bmp388"));
+        accel_p = accel_params("lsm6dsl");
+        baro_p = baro_params("bmp388");
     case "ideal"
-        simin = structs2inputs(simin, accel_params("ideal"));
-        simin = structs2inputs(simin, baro_params("ideal"));
+        accel_p = accel_params("ideal");
+        baro_p = baro_params("ideal");
     otherwise
         error ("Unrecognzied case %s", sensor_mode);
 end
+simin = structs2inputs(simin, accel_p, baro_p);
 
 switch filt_under_test
     case "butter"
@@ -68,11 +69,13 @@ end
 
 simin = structs2inputs(simin, vehicle_params("openrocket"));
 simin = structs2inputs(simin, inits);
-simin = simin.setVariable(dt = 0.001);
+simin = simin.setVariable(dt = 0.01);
 
 simout = sim(simin);
 logs = extractTimetable(simout.logsout);
 logs = fillmissing(logs, "previous");
+
+logs.accel_bias = ((accel_p.ACCEL_BIAS + logs.body_accel) - logs.acceleration(:,2));
 
 % plot setup
 true_args = {"DisplayName", "True"};
@@ -111,7 +114,7 @@ legend;
 
 nexttile; hold on; grid on;
 plot(logs.Time, logs.state_est(:, 4), est_args{:});
-plot(logs.Time, logs.body_accel - logs.acceleration(:,2), true_args{:});
+plot(logs.Time, logs.accel_bias, true_args{:});
 ylabel("Accelerometer bias");
 ysecondarylabel("m/s^2");
 xlabel("Time");
@@ -142,7 +145,7 @@ ylabel("Error");
 ysecondarylabel("m/s^2");
 
 nexttile; hold on; grid on;
-plot(logs.Time, logs.state_est(:, 4) - (logs.body_accel - logs.acceleration(:,2)) );
+plot(logs.Time, logs.state_est(:, 4) - logs.accel_bias);
 plot(logs.Time, [-1, 1] .* n_sigma .* sqrt(logs.estimate_cov(:, 4, 4)), ...
     cov_args{:});
 ysecondarylabel("m/s^2");
