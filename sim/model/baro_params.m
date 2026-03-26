@@ -15,6 +15,13 @@ function params = baro_params(mode)
             noise_rms = 7; % [Pa]
             params.BARO_COV = noise_rms^2;
             params.BARO_LSB = 1.32; % [Pa];
+        case "controls_module"
+            % noise_rms = 1.8549; % [Pa] ms5611 measured without interference
+            noise_rms = 7; % [Pa]
+            params.BARO_COV = noise_rms^2;
+            params.BARO_LSB = 1.32; % [Pa]; not correct
+        case "super_freak"
+            fprintf("deleting system32");
         otherwise 
             error("Unrecognzied barometer %s", mode);
     end

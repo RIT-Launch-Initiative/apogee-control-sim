@@ -10,8 +10,9 @@ quant_ctrl = calc_quantile_lut(const_simin, apogee_target, ...
     luts.(upper_name), luts.(lower_name), num_quant);
 luts.(target_name) = quant_ctrl;
 
-% export to csv
-luts2csv(quant_ctrl, luts.(upper_name), luts.(lower_name), fileparts(luts_file))
+% export luts and info for avi (change the location of this)
+% luts2csv(luts.(upper_name), luts.(lower_name), fileparts(luts_file));
+% luts2json(luts.(upper_name), luts.(lower_name), airdata, fileparts(luts_file));
 
 % display
 exp_fig = figure(name = target_name);

@@ -14,11 +14,11 @@ simin = simin.setModelParameter(SimulationMode = "accelerator");
 cases = table;
 cases.const_brake = linspace(0, 1, 20)';
 simins = table2inputs(simin, cases);
-areas = cases.const_brake * vehicle_data.plate_drag_area;
+areas = cases.const_brake * vehicle_data.plate_drag_area; %areas=areas.*1.2;
 simouts = sim(simins, UseFastRestart = "on");
 efforts = simouts(1).apogee - [simouts.apogee];
 
-my_area = 0.8*(0.00264516) * 2; % m2
+my_area = 1.2*(0.002709672) * 2; % m2
 areas_smooth = linspace(areas(1), areas(end), 100);
 efforts_smooth = interp1(areas, efforts, areas_smooth);
 [~, areas_smooth_index] = min(abs(areas_smooth - my_area));
@@ -36,10 +36,12 @@ xsecondarylabel("cm^2");
 ylabel("Apogee reduction");
 ysecondarylabel("m");
 %legend("Calculated", "Current Reduction");
-title("IREC M3464 Apogee Reduction Cd = 0.8");
+title("RISK Apogee Reduction Cd = 1.2");
 effort_figure.WindowStyle = 'normal';
 effort_figure.Units = "pixels";
 effort_figure.Position = [0 0 400 300];
+
+% ylim([0 460]);
 
 % print2size(effort_figure, fullfile(graphics_path, "effort_curve.pdf"), 1.5*[420 250]);
 % print2size(effort_figure, fullfile(graphics_path, "effort_curve.pdf"), 1.5*[420 250]);

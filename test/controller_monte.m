@@ -7,8 +7,8 @@ sensor_mode = "noisy";
 % filt_under_test = "butter";
 filt_under_test = "kalman";
 
-% ctrl_under_test = "exhaust";
-ctrl_under_test = "quantile_effort";
+ctrl_under_test = "exhaust";
+% ctrl_under_test = "quantile_effort";
 % ctrl_under_test = "s_function";
 % ctrl_under_test = "quantile_tracking";
 
@@ -39,8 +39,8 @@ simin = simin.setVariable(t_0 = inits.t_0);
 
 switch sensor_mode
     case "noisy"
-        simin = structs2inputs(simin, accel_params("lsm6dsl"));
-        simin = structs2inputs(simin, baro_params("bmp388"));
+        simin = structs2inputs(simin, accel_params("controls_module"));
+        simin = structs2inputs(simin, baro_params("controls_module"));
     case "ideal"
         simin = structs2inputs(simin, accel_params("ideal"));
         simin = structs2inputs(simin, baro_params("ideal"));
@@ -50,6 +50,14 @@ end
 
 switch ctrl_under_test
     case "exhaust"
+        if isfile(luts_file)
+            % Preloads the lookup table if it is available
+            lookups = matfile(luts_file, Writable = false);
+        else
+            generate_luts; % Generates the lookup table
+            lookups = matfile(luts_file, Writable = false);
+        end
+
         simin = simin.setVariable(controller_rate = 10);
         simin = simin.setVariable(control_mode = "exhaust");
         simin = simin.setVariable(baro_lut = ...
@@ -170,6 +178,8 @@ plot(upper_bounds, "--k");
 fprintf("Target: %s\n", target_name);
 fprintf("Final apogee error quartiles: [%+.1f %+.2f %+.1f] m\n", ...
     prctile(cases.ctrl_apogee, [25 50 75]) - apogee_target);
+fprintf("Final apogee error mean: %f\n",mean(cases.ctrl_apogee-apogee_target));
+fprintf("Final apogee error std: %f\n",std(cases.ctrl_apogee-apogee_target));
 
 % print2size(traj_figure, fullfile(graphics_path, target_name + ".pdf"), [350 400]);
 

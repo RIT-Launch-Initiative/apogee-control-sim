@@ -113,3 +113,14 @@ plot(compare_full.Time, compare_full.accel_meas - vehicle_data.GRAVITY - ...
 ylabel("Error"); ysecondarylabel("m/s^2");
 
 xlabel(layout, "Time");
+
+
+
+
+
+
+figure(99);hold on; grid on;
+plot(compare_full.Time, compare_full.position(:,2) - compare_full.Altitude, ...
+    DisplayName = "Full");
+ylabel("Error"); ysecondarylabel("m");
+legend;

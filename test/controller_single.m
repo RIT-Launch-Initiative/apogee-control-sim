@@ -1,3 +1,5 @@
+close all;
+
 clear;
 project_globals;
 
@@ -7,8 +9,8 @@ sensor_mode = "noisy";
 % filt_under_test = "butter";
 filt_under_test = "kalman";
 
-% ctrl_under_test = "exhaust";
-ctrl_under_test = "quantile_effort";
+ctrl_under_test = "exhaust";
+% ctrl_under_test = "quantile_effort";
 % ctrl_under_test = "s_function";
 
 simin = Simulink.SimulationInput("sim_controller");
@@ -18,8 +20,8 @@ inits = get_initial_data(orkdata);
 
 switch sensor_mode
     case "noisy"
-        simin = structs2inputs(simin, accel_params("lsm6dsl"));
-        simin = structs2inputs(simin, baro_params("bmp388"));
+        simin = structs2inputs(simin, accel_params("controls_module"));
+        simin = structs2inputs(simin, baro_params("controls_module"));
     case "ideal"
         simin = structs2inputs(simin, accel_params("ideal"));
         simin = structs2inputs(simin, baro_params("ideal"));
@@ -51,6 +53,14 @@ end
 
 switch ctrl_under_test
     case "exhaust"
+        if isfile(luts_file)
+            % Preloads the lookup table if it is available
+            lookups = matfile(luts_file, Writable = false);
+        else
+            generate_luts; % Generates the lookup table
+            lookups = matfile(luts_file, Writable = false);
+        end
+
         simin = simin.setVariable(controller_rate = 10);
         simin = simin.setVariable(control_mode = "exhaust");
         simin = simin.setVariable(baro_lut = ...
@@ -80,7 +90,7 @@ end
 
 simin = structs2inputs(simin, vehicle_params("openrocket", rocket_file, sim_name));
 simin = structs2inputs(simin, inits);
-simin = simin.setVariable(dt = 0.001);
+simin = simin.setVariable(dt = 0.01);
 
 simout = sim(simin);
 logs = extractTimetable(simout.logsout);
@@ -97,7 +107,7 @@ layout.TileIndexing = "rowmajor";
 
 nexttile; hold on; grid on;
 plot(logs.Time, logs.position(:,2), true_args{:});
-% plot(logs.Time, logs.altitude_meas, meas_args{:});
+plot(logs.Time, logs.altitude_meas, meas_args{:});
 plot(logs.Time, logs.altitude_est, est_args{:});
 ylabel("Altitude");
 ysecondarylabel("m AGL");
@@ -127,6 +137,8 @@ ylabel("Vertical acceleration");
 ysecondarylabel("m/s^2");
 xlabel("Time");
 
+legend;
+
 nexttile; hold on; grid on;
 plot(logs.Time, logs.accel_est - logs.acceleration(:,2));
 ylabel("Error");
@@ -148,11 +160,64 @@ legend;
 
 nexttile; hold on; grid on;
 plot(logs.Time, logs.effort, "--", SeriesIndex = 1, DisplayName = "Controller effort");
-plot(logs.Time, logs.extension, "-", SeriesIndex = 1, DisplayName = "Extension");
+% plot(logs.Time, logs.extension, "-", SeriesIndex = 1, DisplayName = "Extension");
 legend;
 ylabel("Airbrake extension");
 xlabel("Time");
 
+
+
+
+
+% Aiden stuff
+% figure();
+% layout = tiledlayout(2,1,"TileSpacing","compact","Padding","compact");
+% layout.TileIndexing = "rowmajor";
+% sgtitle("Innovation");
+% nexttile;plot(logs.Time,logs.v_innovation(:,1));title("Altitude");grid on;
+% nexttile;plot(logs.Time,logs.v_innovation(:,2));title("Acceleration");grid on;
+% 
+% figure();
+% layout = tiledlayout(2,1,"TileSpacing","compact","Padding","compact");
+% layout.TileIndexing = "rowmajor";
+% sgtitle("Normalized Innovation");
+% nexttile;plot(logs.Time,logs.innovation_norm(:,1));title("Altitude");hold on;grid on;
+% yline([-3 3],"r--","LineWidth",1);
+% ylabel("(-)");
+% ylim([-4 4]);
+% legend("","3σ")
+% nexttile;plot(logs.Time,logs.innovation_norm(:,2));title("Acceleration");hold on;grid on;
+% yline([-3 3],"r--","LineWidth",1);
+% ylabel("(-)");
+% ylim([-4 4]);
+% 
+% figure();
+% layout = tiledlayout(2,1,"TileSpacing","compact","Padding","compact");
+% layout.TileIndexing = "rowmajor";
+% sgtitle("Autocorrelation");
+% [r,lags]=xcorr(logs.v_innovation(:,1),"normalized");
+% r=r(lags>=0);lags=lags(lags>=0);
+% nexttile;plot(lags,r);title("Altitude");hold on;grid on;
+% yline([-1.96/sqrt(length(logs.Time)) 1.96/sqrt(length(logs.Time))],"r--","LineWidth",1);
+% [r,lags]=xcorr(logs.v_innovation(:,2),"normalized");
+% r=r(lags>=0);lags=lags(lags>=0);
+% nexttile;plot(lags,r);title("Acceleration");hold on;grid on;
+% yline([-1.96/sqrt(length(logs.Time)) 1.96/sqrt(length(logs.Time))],"r--","LineWidth",1);
+
+
+
+
+
+
+
+% set(gcf,"Position",[0 0 400 300]);
+
 % Closes all simulink models after running
 % Fixes some errors if you need to regenerate data
 bdclose('all')
+
+
+
+% figure();
+% plot(logs.Time,logs.process_difference,"LineWidth",1);
+% legend("Alt","Vel","Accel");

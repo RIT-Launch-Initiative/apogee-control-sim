@@ -66,8 +66,8 @@ for i_sim = 1:num_samples
     cases{i_sim, "wind_speed"} = data{eventfilter("LAUNCHROD"), "Wind velocity"};
     cases{i_sim, "apogee"} = max(data.Altitude);
 
-    idx_on = find(data.("Vertical velocity") > vel_max, 1, "last") + 1;
-    cases{i_sim, "on_time"} = seconds(data.Time(idx_on));
+    % idx_on = find(data.("Vertical velocity") > vel_max, 1, "last") + 1;
+    % cases{i_sim, "on_time"} = seconds(data.Time(idx_on));
     
     % burnout is not garaunteeed to fall on a simulation sample time if the
     % time step is large enough

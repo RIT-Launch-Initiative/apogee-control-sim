@@ -12,11 +12,15 @@ switch rkt_option
     case 2
         rocket_file = "TB-1.ork";
         sim_name = "15mph_URRG";
-        apogee_target = 1350; % [m]
+        apogee_target = 1200; % [m]
     case 3
         rocket_file = "RISK.ork";
         sim_name = "15mph-Midland";
-        apogee_target = 3048; % [m]
+        apogee_target = 3300;%3048; % [m]
+    case 4
+        rocket_file = "L1 Kit.ork";
+        sim_name = "Simulation 1";
+        apogee_target = 500; % [m]
     otherwise
         error('Invalid rocket file option')
 end
@@ -46,6 +50,7 @@ runs = matfile(runs_file, Writable = true);
 % Get custom atmosphere model
 load("21-Jun-2025-10.21.00-midland-gfs_1.mat")
 airdata.TMP = airdata.TMP + 273.15; % Convert C to K
+% airdata = airdata(:, ["HGT", "PRES", "TMP"]); % TESTING
 
 % Get vel & alt at the time when airbrakes can first extend, following DTEG rules
 orkdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE", atmos = airdata);
@@ -65,3 +70,6 @@ else
 end
 vel_max = vel_max - 0; % Helps if typical_variation fails from not finding start time
 clear orkdata mach_at_burnout
+
+% vel_max=144.4728;
+% alt_start=96.244;
