@@ -16,11 +16,11 @@ switch rkt_option
     case 3
         rocket_file = "RISK.ork";
         sim_name = "15mph-Midland";
-        apogee_target = 3300;%3048; % [m]
+        apogee_target = 3048; % [m]
     case 4
         rocket_file = "L1 Kit.ork";
         sim_name = "Simulation 1";
-        apogee_target = 500; % [m]
+        apogee_target = 700; % [m]
     otherwise
         error('Invalid rocket file option')
 end

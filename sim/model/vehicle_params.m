@@ -22,7 +22,7 @@ function [params] = vehicle_params(mode, file_name, sim_name)
             efforts = linspace(0, 1, 20);
             plate_cd = 1.2;
             params.plate_num = 2;
-            params.plate_area = 0.002678716*0.8; % [m^2] for one leaflet
+            params.plate_area = 0.002678716; % [m^2] for one leaflet
 
             doc = openrocket(pfullfile("data", file_name));
             orksim = doc.sims(sim_name);
