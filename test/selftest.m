@@ -13,7 +13,11 @@ opts.setISAAtmosphere(true);
 opts.setWindSpeedAverage(0);
 opts.setWindSpeedDeviation(0);
 % opts.setLaunchRodAngle(deg2rad(70));
-orkdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE", atmos = airdata);
+if use_custom_atm
+    orkdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE", atmos = airdata);
+else
+    orkdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE");
+end
 
 vehicle_data = vehicle_params("openrocket", rocket_file, sim_name);
 inits = get_initial_data(orkdata);

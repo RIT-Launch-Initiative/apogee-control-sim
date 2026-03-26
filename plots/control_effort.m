@@ -1,7 +1,11 @@
 clear;
 project_globals;
 
-simdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE", atmos = airdata);
+if use_custom_atm
+    simdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE", atmos = airdata);
+else
+    simdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE");
+end
 vehicle_data = vehicle_params("openrocket", rocket_file, sim_name);
 inits = get_initial_data(simdata);
 ctrl.control_mode = "const";
@@ -12,13 +16,13 @@ simin = structs2inputs(simin, inits);
 simin = structs2inputs(simin, ctrl);
 simin = simin.setModelParameter(SimulationMode = "accelerator");
 cases = table;
-cases.const_brake = linspace(0, 1, 20)';
+cases.const_brake = linspace(0, 1, 20)'; % 1
 simins = table2inputs(simin, cases);
 areas = cases.const_brake * vehicle_data.plate_drag_area; %areas=areas.*1.2;
 simouts = sim(simins, UseFastRestart = "on");
 efforts = simouts(1).apogee - [simouts.apogee];
 
-my_area = 1.2*(0.002709672) * 2; % m2
+my_area = 1.2*(0.002678716) * 2; % m2
 areas_smooth = linspace(areas(1), areas(end), 100);
 efforts_smooth = interp1(areas, efforts, areas_smooth);
 [~, areas_smooth_index] = min(abs(areas_smooth - my_area));

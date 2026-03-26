@@ -3,6 +3,9 @@
 % Rocket Selection
 rkt_option = 3;
 
+% Atmosphere selection
+use_custom_atm = false;
+
 % Switch case to select the rocket file and the correct nominal case
 switch rkt_option
     case 1
@@ -53,7 +56,11 @@ airdata.TMP = airdata.TMP + 273.15; % Convert C to K
 % airdata = airdata(:, ["HGT", "PRES", "TMP"]); % TESTING
 
 % Get vel & alt at the time when airbrakes can first extend, following DTEG rules
-orkdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE", atmos = airdata);
+if use_custom_atm
+    orkdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE", atmos = airdata);
+else
+    orkdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE");
+end
 mach_at_burnout = orkdata{eventfilter("BURNOUT"), "Mach number"};
 if mach_at_burnout >= 0.8
     % Determined by when rocket is less than mach 0.8

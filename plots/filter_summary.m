@@ -10,7 +10,11 @@ kalm_path = pfullfile("sim", "sim_kalman");
 % get raw data from OpenRocket
 % orkopts.setWindSpeedDeviation(0);
 orkopts.setLaunchRodAngle(deg2rad(20));
-orkdata = doc.simulate(orksim, stop = "APOGEE", outputs = "ALL", atmos = airdata);
+if use_custom_atm
+    orkdata = doc.simulate(orksim, stop = "APOGEE", outputs = "ALL", atmos = airdata);
+else
+    orkdata = doc.simulate(orksim, stop = "APOGEE", outputs = "ALL");
+end
 % join to N-by-2 for Simulink input
 orkdata = mergevars(orkdata, ["Lateral acceleration", "Vertical acceleration"], ...
     NewVariableName = "accel_fixed");

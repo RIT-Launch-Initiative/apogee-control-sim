@@ -59,8 +59,13 @@ for i_sim = 1:num_samples
     dragdata = baseline_drag;
     dragdata.DRAG = dragdata.DRAG * cases.cd_scale(i_sim);
     
-    data = doc.simulate(orksim, ...
-        outputs = stored_vars, stop = "APOGEE", drag = dragdata, atmos = airdata);
+    if use_custom_atm
+        data = doc.simulate(orksim, ...
+            outputs = stored_vars, stop = "APOGEE", drag = dragdata, atmos = airdata);
+    else
+        data = doc.simulate(orksim, ...
+            outputs = stored_vars, stop = "APOGEE", drag = dragdata);
+    end
 
     % Informational
     cases{i_sim, "wind_speed"} = data{eventfilter("LAUNCHROD"), "Wind velocity"};

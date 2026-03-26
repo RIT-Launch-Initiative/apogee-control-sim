@@ -13,7 +13,11 @@ BARO_RATE = input_rate
 % BARO_RMSN = 0; % [Pa]
 GROUND_LEVEL = doc.sims(1).getOptions().getLaunchAltitude();
 
-data = doc.simulate(doc.sims(1), outputs = "ALL", atmos = airdata);
+if use_custom_atm
+    data = doc.simulate(doc.sims(1), outputs = "ALL", atmos = airdata);
+else
+    data = doc.simulate(doc.sims(1), outputs = "ALL");
+end
 position = data(:, ["Lateral distance", "Altitude"]);
 position = mergevars(position, ["Lateral distance", "Altitude"]);
 

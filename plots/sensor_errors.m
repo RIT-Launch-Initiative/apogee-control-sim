@@ -3,7 +3,11 @@ project_globals;
 
 % get raw data from OpenRocket
 % orkopts.setWindSpeedDeviation(0);
-orkdata = doc.simulate(orksim, stop = "APOGEE", outputs = "ALL", atmos = airdata);
+if use_custom_atm
+    orkdata = doc.simulate(orksim, stop = "APOGEE", outputs = "ALL", atmos = airdata);
+else
+    orkdata = doc.simulate(orksim, stop = "APOGEE", outputs = "ALL");
+end
 % join to N-by-2 for Simulink input
 orkdata = mergevars(orkdata, ["Lateral acceleration", "Vertical acceleration"], ...
     NewVariableName = "accel_fixed");

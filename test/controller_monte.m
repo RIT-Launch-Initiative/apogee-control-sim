@@ -33,7 +33,11 @@ simin = simin.setVariable(dt = 0.01);
 
 simin = simin.setModelParameter(SimulationMode = "accelerator");
 
-orkdata = doc.simulate(doc.sims(sim_name), outputs = "ALL", stop = "APOGEE");
+if use_custom_atm
+    orkdata = doc.simulate(doc.sims(sim_name), outputs = "ALL", stop = "APOGEE", atmos = airdata);
+else
+    orkdata = doc.simulate(doc.sims(sim_name), outputs = "ALL", stop = "APOGEE");
+end
 inits = get_initial_data(orkdata);
 simin = simin.setVariable(t_0 = inits.t_0);
 

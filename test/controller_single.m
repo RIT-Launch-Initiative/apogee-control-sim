@@ -15,7 +15,11 @@ ctrl_under_test = "exhaust";
 
 simin = Simulink.SimulationInput("sim_controller");
 
-orkdata = doc.simulate(doc.sims(sim_name), outputs = "ALL", stop = "APOGEE");
+if use_custom_atm
+    orkdata = doc.simulate(doc.sims(sim_name), outputs = "ALL", stop = "APOGEE", atmos = airdata);
+else
+    orkdata = doc.simulate(doc.sims(sim_name), outputs = "ALL", stop = "APOGEE");
+end
 inits = get_initial_data(orkdata);
 
 switch sensor_mode

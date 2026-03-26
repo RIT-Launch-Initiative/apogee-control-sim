@@ -5,7 +5,11 @@ project_globals;
 sim_file = pfullfile("sim", "sim_const"); % more efficient sim for 
 vehicle_data = vehicle_params("openrocket", rocket_file, sim_name);
 
-data = doc.simulate(doc.sims(1), outputs = "ALL", stop = "BURNOUT", atmos = airdata);
+if use_custom_atm
+    data = doc.simulate(doc.sims(1), outputs = "ALL", stop = "BURNOUT", atmos = airdata);
+else
+    data = doc.simulate(doc.sims(1), outputs = "ALL", stop = "BURNOUT");
+end
 inits = get_initial_data(data);
 ctrl.brake_on = 0;
 ctrl.brake_off = 100;
