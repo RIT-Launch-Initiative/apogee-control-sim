@@ -11,7 +11,7 @@ if use_custom_atm
 else
     baseline_data = doc.simulate(orksim, outputs = "ALL", stop = "BURNOUT");
 end
-const_simin = structs2inputs(const_sim_path, vehicle_params("openrocket", rocket_file, sim_name));
+const_simin = structs2inputs(const_sim_path, vehicle_params("openrocket", rkt_file, sim_name));
 const_simin = structs2inputs(const_simin, get_initial_data(baseline_data));
 const_simin = structs2inputs(const_simin, struct(brake_on = 0, brake_off = 100));
 
@@ -32,3 +32,8 @@ else
     lowers = luts.(lower_name);
 end
 
+t_altitudes = altitudes';
+d_lowers=double(lowers);
+d_uppers=double(uppers);
+save(fullfile(launch_file,"cached","bounddata.mat"),"t_altitudes","d_lowers","d_uppers");
+clear t_altitudes d_lowers d_uppers

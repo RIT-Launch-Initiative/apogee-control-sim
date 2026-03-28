@@ -10,7 +10,7 @@ if use_custom_atm
 else
     ordata = doc.simulate(doc.sims(1), outputs = "ALL", stop = "APOGEE");
 end
-vehicle_data = vehicle_params("openrocket", rocket_file, sim_name);
+vehicle_data = vehicle_params("openrocket", rkt_file, sim_name);
 brake_data = get_brake_data(brake_mode);
 
 if brake_drag == "underestimated"
@@ -19,7 +19,7 @@ elseif brake_drag == "overestimated"
     brake_data.PLATE_CD = 1.0;
 end
 
-simin = structs2inputs(sim_file, vehicle_params("openrocket", rocket_file, sim_name));
+simin = structs2inputs(sim_file, vehicle_params("openrocket", rkt_file, sim_name));
 simin = structs2inputs(simin, get_brake_data(brake_mode));
 simin = structs2inputs(simin, get_initial_data(ordata));
 simin = simin.setVariable(dt = 0.01);

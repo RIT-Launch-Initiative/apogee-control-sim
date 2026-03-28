@@ -19,7 +19,7 @@ else
     orkdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE");
 end
 
-vehicle_data = vehicle_params("openrocket", rocket_file, sim_name);
+vehicle_data = vehicle_params("openrocket", rkt_file, sim_name);
 inits = get_initial_data(orkdata);
 inits.dt = 1/100;
 
@@ -30,7 +30,7 @@ ctrl.const_brake = 0;
 ctrl.brake_on = 0;
 ctrl.brake_off = 100; % arbitrary large value
 ctrl.observer_rate = 100;
-ctrl.controller_rate = 10;
+ctrl.controller_rate = 100; %10
 
 %% Simulate
 simin_full = structs2inputs("sim_controller", vehicle_data, ...

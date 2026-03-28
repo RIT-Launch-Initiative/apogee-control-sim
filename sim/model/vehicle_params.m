@@ -24,7 +24,7 @@ function [params] = vehicle_params(mode, file_name, sim_name)
             params.plate_num = 2;
             params.plate_area = 0.002678716; % [m^2] for one leaflet
 
-            doc = openrocket(pfullfile("data", file_name));
+            doc = openrocket(file_name);
             orksim = doc.sims(sim_name);
 
             % get dimensions etc.

@@ -4,7 +4,7 @@ function params = kalman_filter_params(mode)
     end
     
     params.input_rate = 100;
-    params.output_rate = 10;
+    params.output_rate = 100; %10 RATE
     dt = 1/params.input_rate;
 
     % we define 3 different filters using the same structure by setting
@@ -21,12 +21,12 @@ function params = kalman_filter_params(mode)
 
     switch mode
         case "alt-accel-bias"
-        % manually tuned
+            params.kalm_process_cov = diag([0.0776254796714698 0.586627467040288 16.7186495799650 0.537868506151282]);
+            params.kalm_meas_cov = diag([0.23193856 0.0361]);
+
+            % Manually tuned by Yev for OMEN
             % params.kalm_process_cov = diag([1e-4 1e-4 20 1]); 
             % params.kalm_meas_cov = diag([0.23193856 0.0008]);
-            params.kalm_process_cov = diag([0.0055806 0.1584098 29.99647 1]);
-            % params.kalm_process_cov = diag([0 0 0 0]);
-            params.kalm_meas_cov = diag([0.23193856 0.0008]);
         case "alt-accel"
             % small covariance for bias makes this behave like a filter that
             % just subtracts the initial guess for that bias (gravity) from the

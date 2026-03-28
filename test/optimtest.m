@@ -3,7 +3,7 @@ clear;
 project_globals;
 % configure simulation
 sim_file = pfullfile("sim", "sim_const"); % more efficient sim for 
-vehicle_data = vehicle_params("openrocket", rocket_file, sim_name);
+vehicle_data = vehicle_params("openrocket", rkt_file, sim_name);
 
 if use_custom_atm
     data = doc.simulate(doc.sims(1), outputs = "ALL", stop = "BURNOUT", atmos = airdata);

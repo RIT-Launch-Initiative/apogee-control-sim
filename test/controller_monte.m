@@ -1,4 +1,4 @@
-clear;
+% clear;
 project_globals;
 
 sensor_mode = "noisy";
@@ -7,8 +7,8 @@ sensor_mode = "noisy";
 % filt_under_test = "butter";
 filt_under_test = "kalman";
 
-ctrl_under_test = "exhaust";
-% ctrl_under_test = "quantile_effort";
+% ctrl_under_test = "exhaust";
+ctrl_under_test = "quantile_effort";
 % ctrl_under_test = "s_function";
 % ctrl_under_test = "quantile_tracking";
 
@@ -27,7 +27,7 @@ cases = runs.ork_100;
 target_name = sprintf("filt-%s_ctrl-%s_%d", filt_under_test, ctrl_under_test, height(cases));
 
 simin = Simulink.SimulationInput("sim_controller");
-baseline_params = vehicle_params("openrocket", rocket_file, sim_name);
+baseline_params = vehicle_params("openrocket", rkt_file, sim_name);
 simin = structs2inputs(simin, baseline_params);
 simin = simin.setVariable(dt = 0.01);
 
@@ -62,7 +62,7 @@ switch ctrl_under_test
             lookups = matfile(luts_file, Writable = false);
         end
 
-        simin = simin.setVariable(controller_rate = 10);
+        simin = simin.setVariable(controller_rate = 100); %10
         simin = simin.setVariable(control_mode = "exhaust");
         simin = simin.setVariable(baro_lut = ...
             xarray2lut(luts.exhaust_100_by_100, ["vel", "alt"]));
@@ -75,7 +75,7 @@ switch ctrl_under_test
             generate_quant_luts; % Generates the quantile lookup table
             lookups = matfile(luts_file, Writable = false);
         end
-        simin = simin.setVariable(controller_rate = 10);
+        simin = simin.setVariable(controller_rate = 100); %10
         simin = simin.setVariable(control_mode = "quant");
         simin = simin.setVariable(lower_bound_lut = ...
             xarray2lut(luts.lower_bounds, "alt"));
@@ -168,7 +168,7 @@ for i_sim = 1:length(simouts)
     logs = fillmissing(logs, "previous");
 
     % decimate the plot so it isn't as astonishingly laggy in a PDF
-    logs = retime(logs, "regular", "linear", SampleRate = 5); 
+    logs = retime(logs, "regular", "linear", SampleRate = 25);  %5
 
     cases.ctrl_apogee(i_sim) = simouts(i_sim).apogee;
     plot(traj_ax, logs.altitude_est, logs.velocity_est, Color = col);
@@ -184,6 +184,8 @@ fprintf("Final apogee error quartiles: [%+.1f %+.2f %+.1f] m\n", ...
     prctile(cases.ctrl_apogee, [25 50 75]) - apogee_target);
 fprintf("Final apogee error mean: %f\n",mean(cases.ctrl_apogee-apogee_target));
 fprintf("Final apogee error std: %f\n",std(cases.ctrl_apogee-apogee_target));
+fprintf("Final apogee mean: %f\n",mean(cases.ctrl_apogee));
+histogram(cases.ctrl_apogee,50);
 
 % print2size(traj_figure, fullfile(graphics_path, target_name + ".pdf"), [350 400]);
 

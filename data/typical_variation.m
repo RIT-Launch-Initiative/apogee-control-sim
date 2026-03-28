@@ -15,7 +15,10 @@ rod_avg = deg2rad(4);
 rod_spr = deg2rad(1);
 rod_angles = rod_avg + rod_spr * 2 * (rand(sample_size) - 0.5); 
 
-tmp_avg = 273.15 + 25;
+% tmp_avg = 273.15 + 25;
+launchsite_alt = matfile(fullfile(launch_file,"launchsite","launchsite.mat")).("site");
+launchsite_alt = launchsite_alt.alt;
+tmp_avg = interp1(airdata.HGT,airdata.TMP,launchsite_alt); clear launchsite_alt
 tmp_spr = 10;
 temperatures = tmp_avg + tmp_spr * randn(sample_size); 
 
@@ -25,7 +28,7 @@ wdir_offsets = wdir_offset_spr * randn(sample_size);
 % model mis-specified drag by taking the baseline drag table with ext=0
 cd_spr = 0.1;
 cd_scales = 1 + cd_spr * randn(sample_size);
-baseline_params = vehicle_params("openrocket", rocket_file, sim_name);
+baseline_params = vehicle_params("openrocket", rkt_file, sim_name);
 baseline_drag = table(baseline_params.cd_array.mach, ...
     baseline_params.cd_array.pick{"effort", 0}, ...
     VariableNames = ["MACH", "DRAG"]);

@@ -1,14 +1,21 @@
 tic
 typical_variation
-fprintf("Finished typical_variation\n");
-clear all
-generate_bounds
-fprintf("Finished generate_bounds\n");
-clear all
-generate_luts
+fprintf("Finished variation\n");
+clear
+
+generate_bounds;
+fprintf("Finished generating bounds\n");
+clear
+
+% generate_luts
 % generate_quant_luts
-fprintf("Finished generate_luts\n");
-clear all
-controller_single
-% controller_monte
+% fprintf("Finished generating lut\n");
+% clear
+
+jsonify_quant_lut;
+fprintf("Exported lut");
+clear
+
+% controller_single
+controller_monte
 toc

@@ -25,7 +25,7 @@ function params = accel_params(mode)
             params.ACCEL_BIAS = 0; % see if this is accurate somehow?
             params.ACCEL_LSB = 5e-4;
             % params.ACCEL_LSB = 488e-6 * 9.81;
-            params.ACCEL_RANGE = 16 * 9.81;
+            params.ACCEL_RANGE = 16 * 9.81 * sqrt(2);
         case "super_freak"
             fprintf("deleting system32");
         otherwise 

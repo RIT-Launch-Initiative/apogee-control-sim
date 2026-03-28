@@ -6,7 +6,7 @@ if use_custom_atm
 else
     simdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE");
 end
-vehicle_data = vehicle_params("openrocket", rocket_file, sim_name);
+vehicle_data = vehicle_params("openrocket", rkt_file, sim_name);
 inits = get_initial_data(simdata);
 ctrl.control_mode = "const";
 ctrl.brake_on = inits.t_0;

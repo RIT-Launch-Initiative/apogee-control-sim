@@ -1,6 +1,6 @@
-close all;
+% close all;
 
-clear;
+% clear;
 project_globals;
 
 sensor_mode = "noisy";
@@ -9,8 +9,8 @@ sensor_mode = "noisy";
 % filt_under_test = "butter";
 filt_under_test = "kalman";
 
-ctrl_under_test = "exhaust";
-% ctrl_under_test = "quantile_effort";
+% ctrl_under_test = "exhaust";
+ctrl_under_test = "quantile_effort";
 % ctrl_under_test = "s_function";
 
 simin = Simulink.SimulationInput("sim_controller");
@@ -65,7 +65,7 @@ switch ctrl_under_test
             lookups = matfile(luts_file, Writable = false);
         end
 
-        simin = simin.setVariable(controller_rate = 10);
+        simin = simin.setVariable(controller_rate = 100); %10
         simin = simin.setVariable(control_mode = "exhaust");
         simin = simin.setVariable(baro_lut = ...
             xarray2lut(lookups.exhaust_100_by_100, ["vel", "alt"]));
@@ -79,7 +79,7 @@ switch ctrl_under_test
             lookups = matfile(luts_file, Writable = false);
         end
 
-        simin = simin.setVariable(controller_rate = 10);
+        simin = simin.setVariable(controller_rate = 100); %10
         simin = simin.setVariable(control_mode = "quant");
         simin = simin.setVariable(lower_bound_lut = ...
             xarray2lut(lookups.lower_bounds, "alt"));
@@ -92,7 +92,7 @@ switch ctrl_under_test
         error ("Unrecognzied case %s", ctrl_under_test);
 end
 
-simin = structs2inputs(simin, vehicle_params("openrocket", rocket_file, sim_name));
+simin = structs2inputs(simin, vehicle_params("openrocket", rkt_file, sim_name));
 simin = structs2inputs(simin, inits);
 simin = simin.setVariable(dt = 0.01);
 
@@ -123,7 +123,7 @@ ysecondarylabel("m");
 
 nexttile; hold on; grid on;
 plot(logs.Time, logs.velocity(:,2), true_args{:});
-% plot(logs.Time, logs.velocity_meas, meas_args{:});
+plot(logs.Time, logs.velocity_meas, meas_args{:}); %
 plot(logs.Time, logs.velocity_est, est_args{:});
 ylabel("Vertical velocity");
 ysecondarylabel("m/s");
@@ -164,7 +164,7 @@ legend;
 
 nexttile; hold on; grid on;
 plot(logs.Time, logs.effort, "--", SeriesIndex = 1, DisplayName = "Controller effort");
-% plot(logs.Time, logs.extension, "-", SeriesIndex = 1, DisplayName = "Extension");
+plot(logs.Time, logs.extension, "-", SeriesIndex = 1, DisplayName = "Extension"); %
 legend;
 ylabel("Airbrake extension");
 xlabel("Time");
