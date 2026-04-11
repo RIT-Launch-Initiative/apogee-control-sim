@@ -11,8 +11,8 @@ orkopts.setTimeStep(0.05);
 
 % define varied parameters
 sample_size = [num_samples 1];
-rod_avg = deg2rad(4);
-rod_spr = deg2rad(1);
+rod_avg = deg2rad(10);
+rod_spr = deg2rad(2);
 rod_angles = rod_avg + rod_spr * 2 * (rand(sample_size) - 0.5); 
 
 % tmp_avg = 273.15 + 25;
@@ -22,7 +22,9 @@ tmp_avg = interp1(airdata.HGT,airdata.TMP,launchsite_alt); clear launchsite_alt
 tmp_spr = 10;
 temperatures = tmp_avg + tmp_spr * randn(sample_size); 
 
-wdir_offset_spr = deg2rad(20);
+% wdir_offset_spr = deg2rad(20);
+% wdir_offsets = wdir_offset_spr * randn(sample_size);
+wdir_offset_spr = deg2rad(360);
 wdir_offsets = wdir_offset_spr * randn(sample_size);
 
 % model mis-specified drag by taking the baseline drag table with ext=0
@@ -54,7 +56,7 @@ cases.velocity_init = NaN(height(cases), 2); % initial velocity [xdot, zdot]
 for i_sim = 1:num_samples
     start = tic;
     orkopts.randomizeSeed();
-    orkopts.setISAAtmosphere(false);
+    % orkopts.setISAAtmosphere(false);
     orkopts.setLaunchRodAngle(cases.rod_angle(i_sim));
     orkopts.setWindDirection(orkopts.getLaunchRodDirection() + cases.wind_off(i_sim));
     orkopts.setLaunchTemperature(cases.temp(i_sim));

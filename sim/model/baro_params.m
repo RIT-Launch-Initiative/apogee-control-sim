@@ -16,10 +16,9 @@ function params = baro_params(mode)
             params.BARO_COV = noise_rms^2;
             params.BARO_LSB = 1.32; % [Pa];
         case "controls_module"
-            % noise_rms = 1.8549; % [Pa] ms5611 measured without interference
-            noise_rms = 7; % [Pa]
-            params.BARO_COV = noise_rms^2;
-            params.BARO_LSB = 1.32; % [Pa]; not correct
+            noise_rms = 3.03514883018844; % [Pa]
+            params.BARO_COV = noise_rms^2; % From emma's L1
+            params.BARO_LSB = 1.0; % [Pa]
         case "super_freak"
             fprintf("deleting system32");
         otherwise 

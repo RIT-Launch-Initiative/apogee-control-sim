@@ -1,6 +1,8 @@
 % clear;
 project_globals;
 
+turn_off_extension = 0;
+
 sensor_mode = "noisy";
 % sensor_mode = "ideal";
 
@@ -101,7 +103,7 @@ switch filt_under_test
         simin = structs2inputs(simin, alt_filter_params("designed"));
         simin = structs2inputs(simin, accel_filter_params("designed"));
     case "kalman"
-        params = kalman_filter_params("alt-accel-bias");
+        params = kalman_filter_params("alt-accel-bias",launch_file);
 
         % This is not strictly accurate;
         % - each simulation will have a different initial state
@@ -109,6 +111,10 @@ switch filt_under_test
         % however, the filter will quickly settle to a close-to-true value and
         % this is better than initializing with all zeros
         initdata = retime(orkdata, seconds(inits.t_0));
+        % params.kalm_initial = [initdata.Altitude; 
+        %     initdata.("Vertical velocity");
+        %     initdata.("Vertical acceleration");
+        %     9.81];
         params.kalm_initial = [initdata.Altitude; 
             initdata.("Vertical velocity");
             initdata.("Vertical acceleration");
@@ -127,11 +133,12 @@ start = tic;
 monte_inits = table2struct(cases(:, ["position_init", "velocity_init"]));
 for i_case = 1:length(monte_inits)
     % these are rows of a table, but need to be column vectors in the simulation
-    monte_inits(i_case).position_init = monte_inits(i_case).position_init'; 
-    monte_inits(i_case).velocity_init = monte_inits(i_case).velocity_init'; 
+    monte_inits(i_case).position_init = monte_inits(i_case).position_init';% + (1200*0.05)*(2*(rand([2 1])-0.5)).*[0.25; 1];
+    monte_inits(i_case).velocity_init = monte_inits(i_case).velocity_init';% + (170*0.05)*(2*(rand([2 1])-0.5)).*[0.25; 1];
     monte_inits(i_case).DRAG_LUT = xarray2lut(...
         cases.cd_scale(i_case) * baseline_params.cd_array, ...
         ["mach", "effort"], "drag_table");
+    % monte_inits(i_case).kalm_initial = []
 end
 simins = structs2inputs(simin, monte_inits);
 

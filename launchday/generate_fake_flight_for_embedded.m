@@ -7,7 +7,7 @@ alt_p.GROUND_LEVEL = orkopts.getLaunchAltitude();
 
 accel_p = accel_params("controls_module");
 accel_p.GRAVITY = 9.81;
-kalm_p = kalman_filter_params("alt-accel-bias");
+kalm_p = kalman_filter_params("alt-accel-bias",launch_file);
 
 % orkopts.setLaunchRodAngle(deg2rad(20));
 if use_custom_atm
@@ -36,13 +36,13 @@ simin = structs2inputs(simin, inputs);
 load(fullfile(launch_file,"tune","tune.mat"));
 
 simin = simin.setVariable(kalm_process_cov = diag(variances));
-simin = simin.setVariable(kalm_measure_cov = diag([0.23193856 0.0361]));
+simin = simin.setVariable(kalm_measure_cov = diag([0.061410353 2.3659593e-05]));
 simin = simin.setModelParameter(SimulationMode = "accelerator", FastRestart = "on");
 
 simout = sim(simin);
 logs = extractTimetable(simout.logsout);
 
-writematrix(["Time (s)" "Vertical acceleration (m/s²)" "Lateral acceleration (m/s²)" "Roll rate (rad/s)" "Pitch rate (rad/s)" "Yaw rate (rad/s)" "Air temperature (°C)" "Air pressure (mbar)";...
+writematrix(["# Time (s)" "Vertical acceleration (m/s²)" "Lateral acceleration (m/s²)" "Roll rate (rad/s)" "Pitch rate (rad/s)" "Yaw rate (rad/s)" "Air temperature (°C)" "Air pressure (mbar)";...
     seconds(logs.Time) logs.acceleration(:,2) -logs.acceleration(:,1) ...
     zeros([length(logs.acceleration) 1]) zeros([length(logs.acceleration) 1]) zeros([length(logs.acceleration) 1]) ...
     zeros([length(logs.acceleration) 1]) logs.pressure_meas/100],fullfile(launch_file,"testing","fake_flight_data.csv"),"WriteMode","overwrite");
@@ -50,113 +50,6 @@ writematrix(["Time (s)" "Vertical acceleration (m/s²)" "Lateral acceleration (m
 set_param(simin.ModelName, FastRestart = "off");
 
 
-% logs.
-
-%     cost=0;
-%     % cost=cost+rmse(logs_cut.position(:,2),logs_cut.altitude_est)*weights(1);
-%     cost=cost+rmse(logs_cut.velocity(:,2),logs_cut.velocity_est)^2*weights(2);
-%     cost=cost+rmse(logs_cut.acceleration(:,2),logs_cut.accel_est)*weights(3);
-%     % cost=cost+abs(1-std(logs_cut.kalman_innov_norm(:,1)))*weights(4);
-%     % cost=cost+abs(1-std(logs_cut.kalman_innov_norm(10:end,2)))*weights(5);
-%     % cost = cost + max(abs(logs_cut.velocity(:,2)-logs_cut.velocity_est));
-% 
-%     alt_est(end+1,:)=logs.altitude_est;
-%     alt_true(end+1,:)=logs.position(:,2);
-% 
-%     vel_est(end+1,:)=logs.velocity_est;
-%     vel_true(end+1,:)=logs.velocity(:,2);
-% 
-%     accel_est(end+1,:)=logs.accel_est;
-%     accel_true(end+1,:)=logs.acceleration(:,2);
-% end
-
-
-
-
-% %% Test
-% 
-% % close all;
-% 
-% Q=diag(table2array(results.XAtMinObjective));
-% % Q=diag(10.^(QdB/10));
-% % Q=diag([0.092021 1.96 3.7154 12.45]);
-% R=diag([0.23193856 0.0361]);
-% 
-% simin=simin.setVariable(kalm_process_cov=Q);
-% simin=simin.setVariable(kalm_measure_cov=R);
-% 
-% simout = sim(simin);
-% logs = extractTimetable(simout.logsout);
-% 
-% t_true=logs.Time;
-% alt_true=logs.position(:,2);
-% vel_true=logs.velocity(:,2);
-% accel_true=logs.acceleration(:,2);
-% 
-% alt_est=logs.altitude_est;
-% vel_est=logs.velocity_est;
-% accel_est=logs.accel_est;
-% 
-% figure(5);
-% tiledlayout(3,2,"TileIndexing","columnmajor","TileSpacing","compact","Padding","compact");
-% 
-% nexttile;
-% plot(t_true,alt_true);hold on;
-% plot(t_true,alt_est);
-% xline(time_to_burnout);
-% title("Altitude");
-% 
-% nexttile;
-% plot(t_true,vel_true);hold on;
-% plot(t_true,vel_est);
-% xline(time_to_burnout);
-% title("Velocity");
-% 
-% nexttile;
-% plot(t_true,accel_true,"DisplayName","True");hold on;
-% plot(t_true,accel_est,"DisplayName","Estimated");
-% xline(time_to_burnout,"DisplayName","Burnout");
-% title("Acceleration");
-% legend;
-% 
-% TR = timerange(duration(seconds(burnout_time)),duration(seconds(100)));
-% logs_cut = logs(TR,:);
-% 
-% nexttile;
-% plot(t_true,alt_est-alt_true);hold on;grid on;
-% xline(time_to_burnout);
-% yline([-5 5],"r--","LineWidth",1); % Good to have under
-% title("Altitude Error");
-% 
-% nexttile;
-% max_vel_error=max(abs(logs_cut.velocity_est-logs_cut.velocity(:,2)));
-% plot(t_true,vel_est-vel_true);hold on;grid on;
-% xline(time_to_burnout);
-% yline([-3 3],"r--","LineWidth",1);
-% title("Vel Error | Max Post Burn: "+string(round(max_vel_error,2))+"m/s");
-% 
-% nexttile;
-% max_accel_error=max(abs(logs_cut.accel_est-logs_cut.acceleration(:,2)));
-% plot(t_true,accel_est-accel_true);hold on;grid on;
-% xline(time_to_burnout);
-% yline([-3 3],"r--","LineWidth",1);
-% ylim([-5 5])
-% title("Accel Error | Max Post Burn: "+string(round(max_accel_error,2))+"m/s2");
-% 
-% 
-% 
-% figure(6);
-% tiledlayout(2,1,"TileIndexing","columnmajor","TileSpacing","compact","Padding","compact");
-% 
-% nexttile;
-% plot(t_true,logs.kalman_innov_norm(:,1));xline(burnout_time);
-% ylim([-4 4]);yline([-3 3],"r--","LineWidth",1);
-% title("Barometer Norm Innov | Std: "+string(round(std(logs.kalman_innov_norm(:,1)),2)));
-% 
-% nexttile;
-% plot(t_true,logs.kalman_innov_norm(:,2));xline(burnout_time);
-% ylim([-4 4]);yline([-3 3],"r--","LineWidth",1);
-% title("Accelerometer Norm Innov | Std: "+string(round(std(logs.kalman_innov_norm(4:end,2)),2)));
 
 
 
@@ -173,6 +66,9 @@ set_param(simin.ModelName, FastRestart = "off");
 
 
 
+%% Maybe could use the fully controlled sim below
+%  and even though the embedded controller can't affect it's world,
+%  but if everything works then the effort it gives should match matlab
 % 
 % % clear;
 % project_globals;
@@ -213,7 +109,7 @@ set_param(simin.ModelName, FastRestart = "off");
 %         simin = structs2inputs(simin, alt_filter_params("designed"));
 %         simin = structs2inputs(simin, accel_filter_params("designed"));
 %     case "kalman"
-%         params = kalman_filter_params("alt-accel-bias");
+%         params = kalman_filter_params("alt-accel-bias",launch_file);
 %         % the initial state is not likely to be perfect, but this is more
 %         % realistic than using all-zeros 
 %         initdata = retime(orkdata, seconds(inits.t_0));

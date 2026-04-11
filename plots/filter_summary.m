@@ -39,13 +39,13 @@ simin_lowpass = structs2inputs(alt_path, ...
     config, inputs, baro_p, alt_filter_params("designed"));
 
 simin_kalm_bias = structs2inputs(kalm_path, ...
-    config, inputs, baro_p, accel_p, kalman_filter_params("alt-accel-bias"));
+    config, inputs, baro_p, accel_p, kalman_filter_params("alt-accel-bias",launch_file));
 
 simin_kalm_accel = structs2inputs(kalm_path, ...
-    config, inputs, baro_p, accel_p, kalman_filter_params("alt-accel"));
+    config, inputs, baro_p, accel_p, kalman_filter_params("alt-accel",launch_file));
 
 simin_kalm_alt = structs2inputs(kalm_path, ...
-    config, inputs, baro_p, accel_p, kalman_filter_params("alt"));
+    config, inputs, baro_p, accel_p, kalman_filter_params("alt",launch_file));
 
 filters(1).simin = simin_lowpass;
 filters(1).label = "Low-pass";

@@ -3,6 +3,8 @@
 % clear;
 project_globals;
 
+turn_off_extension = 0;
+
 sensor_mode = "noisy";
 % sensor_mode = "ideal";
 
@@ -39,13 +41,17 @@ switch filt_under_test
         simin = structs2inputs(simin, alt_filter_params("designed"));
         simin = structs2inputs(simin, accel_filter_params("designed"));
     case "kalman"
-        params = kalman_filter_params("alt-accel-bias");
+        params = kalman_filter_params("alt-accel-bias",launch_file);
         % the initial state is not likely to be perfect, but this is more
         % realistic than using all-zeros 
         initdata = retime(orkdata, seconds(inits.t_0));
-        params.kalm_initial = [initdata.Altitude; 
-            initdata.("Vertical velocity");
-            initdata.("Vertical acceleration");
+        % params.kalm_initial = [initdata.Altitude; 
+        %     initdata.("Vertical velocity");
+        %     initdata.("Vertical acceleration");
+        %     9.81];
+        params.kalm_initial = [initdata.Altitude;% + 500*(rand()-0.5); 
+            initdata.("Vertical velocity");% + 150*(rand()-0.5);
+            initdata.("Vertical acceleration");% + 20*(rand()-0.5);
             9.81];
 
         simin = simin.setVariable(filter_mode = "kalman");
@@ -218,7 +224,7 @@ xlabel("Time");
 
 % Closes all simulink models after running
 % Fixes some errors if you need to regenerate data
-bdclose('all')
+% bdclose('all')
 
 
 

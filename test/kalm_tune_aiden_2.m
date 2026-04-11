@@ -6,7 +6,7 @@ alt_p.GROUND_LEVEL = orkopts.getLaunchAltitude();
 
 accel_p = accel_params("controls_module");
 accel_p.GRAVITY = 9.81;
-kalm_p = kalman_filter_params("alt-accel-bias");
+kalm_p = kalman_filter_params("alt-accel-bias",launch_file);
 
 % orkopts.setLaunchRodAngle(deg2rad(20));
 if use_custom_atm

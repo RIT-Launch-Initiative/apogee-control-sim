@@ -20,7 +20,7 @@ function [params] = vehicle_params(mode, file_name, sim_name)
             % constants
             machs = [linspace(0, 1.5, 100)]';
             efforts = linspace(0, 1, 20);
-            plate_cd = 1.2;
+            plate_cd = 1.2; % 0.8 1.2
             params.plate_num = 2;
             params.plate_area = 0.002678716; % [m^2] for one leaflet
 

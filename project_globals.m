@@ -1,6 +1,6 @@
 %% DEFINE PROJECT GLOBALS
 
-launch_name = "emma_L1";
+launch_name = "testbed";
 
 launch_file = pfullfile("launches", launch_name);
 rocket_file = string(dir(fullfile(launch_file,"openrocket","*.ork")).name);
@@ -14,6 +14,13 @@ use_custom_atm = true;
 atm_file = fullfile(launch_file,"atmosphere",string(dir(fullfile(launch_file,"atmosphere","*.mat")).name));
 load(atm_file);
 airdata.TMP = airdata.TMP + 273.15; % Convert C to K
+PRES = interp1(airdata.HGT,airdata.PRES,[0;airdata.HGT],"linear","extrap");
+HGT = [0;airdata.HGT];
+TMP = [airdata.TMP(1);airdata.TMP];
+UGRD = [airdata.UGRD(1);airdata.UGRD];
+VGRD = [airdata.VGRD(1);airdata.VGRD];
+airdata = table(PRES,HGT,TMP,UGRD,VGRD);
+clear PRES HGT TMP UGRD VGRD;
 
 % % Rocket Selection
 % rkt_option = 3;
@@ -97,3 +104,5 @@ if ~isfile(flight_info_file)
 else
     load(flight_info_file);
 end
+
+turn_off_extension = 0;

@@ -4,7 +4,7 @@ data.name = launch_name;
 data.date = string(datetime("now", "Format", "yyyy-MM-dd'T'HH:mm:ss"));
 
 load(fullfile(launch_file,"cached","flight_info.mat"));
-data.lockout_ms = ceil(time_to_burnout*1000);
+data.lockout_ms = ceil(time_to_burnout*1000*1.05);
 data.flight_time_ms = ceil((time_to_sim_end*1000)*1.5);
 
 load(fullfile(launch_file,"orientation","orientation.mat"));
