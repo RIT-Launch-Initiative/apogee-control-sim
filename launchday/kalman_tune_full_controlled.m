@@ -47,7 +47,7 @@ simin = simin.setVariable(lower_bound_lut = ...
 simin = simin.setVariable(upper_bound_lut = ...
     xarray2lut(lookups.upper_bounds, "alt"));
 
-simin = structs2inputs(simin, vehicle_params("openrocket", rkt_file, sim_name));
+simin = structs2inputs(simin, vehicle_params("openrocket", rkt_file, sim_name, drag_file));
 simin = structs2inputs(simin, inits);
 simin = simin.setVariable(dt = 0.01);
 

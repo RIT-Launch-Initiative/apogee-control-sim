@@ -23,13 +23,14 @@ else
     lookups = matfile(runs_file, Writable = false);
 end
 
-cases = runs.ork_100;
+cases = runs.ork_400; % REMOVE
+% cases = runs.ork_100;
 % cases = cases(1:10, :);
 
 target_name = sprintf("filt-%s_ctrl-%s_%d", filt_under_test, ctrl_under_test, height(cases));
 
 simin = Simulink.SimulationInput("sim_controller");
-baseline_params = vehicle_params("openrocket", rkt_file, sim_name);
+baseline_params = vehicle_params("openrocket", rkt_file, sim_name, drag_file);
 simin = structs2inputs(simin, baseline_params);
 simin = simin.setVariable(dt = 0.01);
 
@@ -127,6 +128,15 @@ switch filt_under_test
         error ("Unrecognzied case %s", filt_under_test);
 end
 
+% times = [0.5715 0.0959];
+% times = [0.5 5/100];
+% times = [0.826234461138342	0.578919446613164]; % From pwm tune without small ovserve time
+% times = [1.43977781856437 0.209833799832803]; % From pwm tune with making observe time small
+times = [0.6 0.08]; % GOOD for RISK!!!
+simin = simin.setVariable(on_time =  times(1));
+simin = simin.setVariable(dead_time =  0.25);
+simin = simin.setVariable(observe_time =  times(2));
+
 fprintf("Creating Monte Carlo input array...");
 
 start = tic;
@@ -140,6 +150,9 @@ for i_case = 1:length(monte_inits)
         ["mach", "effort"], "drag_table");
     % monte_inits(i_case).kalm_initial = []
 end
+% cutoff_index = 400; % AIDEN ADDED
+cutoff_index = 400; % AIDEN ADDED
+monte_inits = monte_inits(1:cutoff_index);
 simins = structs2inputs(simin, monte_inits);
 
 fprintf(" finished in %.1f sec\n", toc(start));
@@ -154,7 +167,8 @@ traj_figure = figure(name = "Monte Carlo raw outputs");
 layout = tiledlayout(3,1);
 
 traj_ax = nexttile([2 1]); hold on; grid on;
-xlim([min(lower_bounds.alt), max(lower_bounds.alt)]);
+% xlim([min(lower_bounds.alt), max(lower_bounds.alt)]);
+xlim([min(lower_bounds.alt), 4000]); % EDITED
 ylim([min(double(lower_bounds)), max(double(upper_bounds))]);
 xlabel("Altitude");
 xsecondarylabel("m AGL");
@@ -175,10 +189,12 @@ for i_sim = 1:length(simouts)
     logs = fillmissing(logs, "previous");
 
     % decimate the plot so it isn't as astonishingly laggy in a PDF
-    logs = retime(logs, "regular", "linear", SampleRate = 25);  %5
+    % logs = retime(logs, "regular", "linear", SampleRate = 25);  %5
 
     cases.ctrl_apogee(i_sim) = simouts(i_sim).apogee;
-    plot(traj_ax, logs.altitude_est, logs.velocity_est, Color = col);
+    % plot(traj_ax, logs.altitude_est, logs.velocity_est, Color = col);
+    % plot(effort_ax, logs.Time, logs.extension, Color = col);
+    plot(traj_ax, logs.position(:,2), logs.velocity(:,2), Color = col);
     plot(effort_ax, logs.Time, logs.extension, Color = col);
 end
 
@@ -189,10 +205,10 @@ plot(upper_bounds, "--k");
 fprintf("Target: %s\n", target_name);
 fprintf("Final apogee error quartiles: [%+.1f %+.2f %+.1f] m\n", ...
     prctile(cases.ctrl_apogee, [25 50 75]) - apogee_target);
-fprintf("Final apogee error mean: %f\n",mean(cases.ctrl_apogee-apogee_target));
-fprintf("Final apogee error std: %f\n",std(cases.ctrl_apogee-apogee_target));
-fprintf("Final apogee mean: %f\n",mean(cases.ctrl_apogee));
-histogram(cases.ctrl_apogee,50);
+fprintf("Final apogee error mean: %f\n",mean(cases.ctrl_apogee(1:cutoff_index)-apogee_target));
+fprintf("Final apogee error std: %f\n",std(cases.ctrl_apogee(1:cutoff_index)-apogee_target));
+fprintf("Final apogee mean: %f\n",mean(cases.ctrl_apogee(1:cutoff_index)));
+histogram(cases.ctrl_apogee(1:cutoff_index),50);
 
 % print2size(traj_figure, fullfile(graphics_path, target_name + ".pdf"), [350 400]);
 

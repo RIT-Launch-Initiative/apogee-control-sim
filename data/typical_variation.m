@@ -1,26 +1,27 @@
 project_globals;
 
-num_samples = 100;
+num_samples = 400; % 100
+% num_samples = 100;
 stored_vars = ["Lateral distance", "Altitude", ...
     "Lateral velocity", "Vertical velocity", "Wind velocity"];
 
 % better to randomize wind inside the simulation using OR's Karman wind noise
-orkopts.setWindSpeedAverage(7);
-orkopts.setWindSpeedDeviation(3)
+orkopts.setWindSpeedAverage(9);
+orkopts.setWindSpeedDeviation(4.25);
 orkopts.setTimeStep(0.05);
 
 % define varied parameters
 sample_size = [num_samples 1];
-rod_avg = deg2rad(10);
+rod_avg = deg2rad(6);
 rod_spr = deg2rad(2);
-rod_angles = rod_avg + rod_spr * 2 * (rand(sample_size) - 0.5); 
+rod_angles = rod_avg + rod_spr * 2 * (rand(sample_size) - 0.5);
 
 % tmp_avg = 273.15 + 25;
 launchsite_alt = matfile(fullfile(launch_file,"launchsite","launchsite.mat")).("site");
 launchsite_alt = launchsite_alt.alt;
 tmp_avg = interp1(airdata.HGT,airdata.TMP,launchsite_alt); clear launchsite_alt
-tmp_spr = 10;
-temperatures = tmp_avg + tmp_spr * randn(sample_size); 
+tmp_spr = 4;
+temperatures = tmp_avg + tmp_spr * randn(sample_size);
 
 % wdir_offset_spr = deg2rad(20);
 % wdir_offsets = wdir_offset_spr * randn(sample_size);
@@ -30,7 +31,7 @@ wdir_offsets = wdir_offset_spr * randn(sample_size);
 % model mis-specified drag by taking the baseline drag table with ext=0
 cd_spr = 0.1;
 cd_scales = 1 + cd_spr * randn(sample_size);
-baseline_params = vehicle_params("openrocket", rkt_file, sim_name);
+baseline_params = vehicle_params("openrocket", rkt_file, sim_name, drag_file);
 baseline_drag = table(baseline_params.cd_array.mach, ...
     baseline_params.cd_array.pick{"effort", 0}, ...
     VariableNames = ["MACH", "DRAG"]);

@@ -5,6 +5,15 @@ project_globals;
 
 turn_off_extension = 0;
 
+orkopts.setWindSpeedAverage(9);
+orkopts.setTimeStep(0.05);
+orkopts.setLaunchRodAngle(deg2rad(6));
+orkopts.setWindDirection(deg2rad(0));
+launchsite_alt = matfile(fullfile(launch_file,"launchsite","launchsite.mat")).("site");
+launchsite_alt = launchsite_alt.alt;
+tmp_avg = interp1(airdata.HGT,airdata.TMP,launchsite_alt); clear launchsite_alt
+orkopts.setLaunchTemperature(tmp_avg);
+
 sensor_mode = "noisy";
 % sensor_mode = "ideal";
 
@@ -15,7 +24,14 @@ filt_under_test = "kalman";
 ctrl_under_test = "quantile_effort";
 % ctrl_under_test = "s_function";
 
+use_custom_atm = true;
+
 simin = Simulink.SimulationInput("sim_controller");
+
+% params.on_time = 0.5;
+% params.dead_time = 0.2;
+% params.observe_time = 0.05;
+% simin = structs2inputs(simin, params);
 
 if use_custom_atm
     orkdata = doc.simulate(doc.sims(sim_name), outputs = "ALL", stop = "APOGEE", atmos = airdata);
@@ -45,13 +61,9 @@ switch filt_under_test
         % the initial state is not likely to be perfect, but this is more
         % realistic than using all-zeros 
         initdata = retime(orkdata, seconds(inits.t_0));
-        % params.kalm_initial = [initdata.Altitude; 
-        %     initdata.("Vertical velocity");
-        %     initdata.("Vertical acceleration");
-        %     9.81];
-        params.kalm_initial = [initdata.Altitude;% + 500*(rand()-0.5); 
-            initdata.("Vertical velocity");% + 150*(rand()-0.5);
-            initdata.("Vertical acceleration");% + 20*(rand()-0.5);
+        params.kalm_initial = [initdata.Altitude; 
+            initdata.("Vertical velocity");
+            initdata.("Vertical acceleration");
             9.81];
 
         simin = simin.setVariable(filter_mode = "kalman");
@@ -98,9 +110,20 @@ switch ctrl_under_test
         error ("Unrecognzied case %s", ctrl_under_test);
 end
 
-simin = structs2inputs(simin, vehicle_params("openrocket", rkt_file, sim_name));
+simin = structs2inputs(simin, vehicle_params("openrocket", rkt_file, sim_name, drag_file));
 simin = structs2inputs(simin, inits);
 simin = simin.setVariable(dt = 0.01);
+
+% times = [3.80306179276885	0.252970260557243	1.46857209844384];
+% times = [0.5715 0.0959];
+% times = [0.5 5/100];
+% times = [0.826234461138342	0.578919446613164];
+% times = [0.826234461138342	0.0578919446613164];
+% times = [1.43977781856437 0.209833799832803]; % From pwm tune with making observe time small
+times = [0.6 0.08]; % GOOD RISK
+simin = simin.setVariable(on_time =  times(1));
+simin = simin.setVariable(dead_time =  0.25); % 0.25
+simin = simin.setVariable(observe_time =  times(2));
 
 simout = sim(simin);
 logs = extractTimetable(simout.logsout);
@@ -122,6 +145,8 @@ plot(logs.Time, logs.altitude_est, est_args{:});
 ylabel("Altitude");
 ysecondarylabel("m AGL");
 
+% xlim([seconds(5.3) seconds(9)]);
+
 nexttile; hold on; grid on;
 plot(logs.Time, logs.altitude_est - logs.position(:,2));
 ylabel("Error");
@@ -129,10 +154,12 @@ ysecondarylabel("m");
 
 nexttile; hold on; grid on;
 plot(logs.Time, logs.velocity(:,2), true_args{:});
-plot(logs.Time, logs.velocity_meas, meas_args{:}); %
+% plot(logs.Time, logs.velocity_meas, meas_args{:}); %
 plot(logs.Time, logs.velocity_est, est_args{:});
 ylabel("Vertical velocity");
 ysecondarylabel("m/s");
+
+% xlim([seconds(5.3) seconds(9)]);
 
 nexttile; hold on; grid on;
 plot(logs.Time, logs.velocity_est - logs.velocity(:,2));
@@ -162,6 +189,7 @@ layout = tiledlayout(3,1);
 nexttile([2 1]); hold on; grid on;
 plot(logs.position(:,2), logs.velocity(:,2), true_args{:});
 plot(logs.altitude_est, logs.velocity_est, est_args{:});
+xline(apogee_target);
 xlabel("Altitude");
 xsecondarylabel("m AGL");
 ylabel("Vertical velocity");

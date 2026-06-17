@@ -11,7 +11,7 @@ if use_custom_atm
 else
     baseline_data = doc.simulate(orksim, outputs = "ALL", stop = "BURNOUT");
 end
-const_simin = structs2inputs(const_sim_path, vehicle_params("openrocket", rkt_file, sim_name));
+const_simin = structs2inputs(const_sim_path, vehicle_params("openrocket", rkt_file, sim_name, drag_file));
 const_simin = structs2inputs(const_simin, get_initial_data(baseline_data));
 const_simin = structs2inputs(const_simin, struct(brake_on = 0, brake_off = 100));
 

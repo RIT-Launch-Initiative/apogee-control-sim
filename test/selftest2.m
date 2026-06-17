@@ -31,7 +31,7 @@ else
     orkdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE");
 end
 
-vehicle_data = vehicle_params("openrocket", rkt_file, sim_name);
+vehicle_data = vehicle_params("openrocket", rkt_file, sim_name, drag_file);
 inits = get_initial_data(orkdata);
 inits.dt = 1/100;
 

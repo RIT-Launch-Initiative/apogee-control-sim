@@ -8,8 +8,12 @@ function params = get_initial_data(simout)
     arguments
         simout timetable
     end
+
+    % In case events like burnout don't align perfectly with times
+    events = simout.Properties.Events;
+    eventdata = retime(simout,unique(events.Time),"linear");
     
-    burnout_state = simout(eventfilter("BURNOUT"), :);
+    burnout_state = eventdata(eventfilter("BURNOUT"), :);
 
     params.t_0 = seconds(burnout_state.Time);
     params.position_init = burnout_state{1, ["Lateral distance", "Altitude"]}';

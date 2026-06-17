@@ -4,15 +4,17 @@
 %   mode            (string)    OpenRocket document
 %   file_name       (string)    OpenRocket file name
 %   sim_name        (string)    OpenRocket sim name
+%   drag_name       (string)    Path of mat file with drag curve
 % Outputs
 %   params    (struct)        
 %       Structure with fields MASS_DRY, REF_AREA, DRAG_DATA, GROUND_LEVEL, GRAVITY
 
-function [params] = vehicle_params(mode, file_name, sim_name)
+function [params] = vehicle_params(mode, file_name, sim_name, drag_name)
     arguments
         mode (1,1) string;
         file_name (1,1) string;
         sim_name (1,1) string;
+        drag_name (1,1) string;
     end
     
     switch mode
@@ -20,7 +22,8 @@ function [params] = vehicle_params(mode, file_name, sim_name)
             % constants
             machs = [linspace(0, 1.5, 100)]';
             efforts = linspace(0, 1, 20);
-            plate_cd = 1.2; % 0.8 1.2
+            plate_cd = 0.98;% * 0.7;      % 1 / (1 + 0.4 + 0.45)
+            % plate_cd = plate_cd * 1.1;
             params.plate_num = 2;
             params.plate_area = 0.002678716; % [m^2] for one leaflet
 
@@ -45,11 +48,14 @@ function [params] = vehicle_params(mode, file_name, sim_name)
 
             % calculate base rocket drag
             rocket_cd = NaN(size(machs));
-            fc = doc.flight_condition(0, 0);
-            for i_mach = 1:size(machs, 1)
-                fc.setMach(machs(i_mach));
-                [~, rocket_cd(i_mach), ~, ~, ~] = doc.aerodata3(fc);
-            end
+            % fc = doc.flight_condition(0, 0);
+            % for i_mach = 1:size(machs, 1)
+            %     fc.setMach(machs(i_mach));
+            %     [~, rocket_cd(i_mach), ~, ~, ~] = doc.aerodata3(fc);
+            % end
+            load(drag_name);
+
+            rocket_cd = interp1(dragcurve.Mach,dragcurve.CD,machs,"linear","extrap");
 
             assert(iscolumn(rocket_cd));
             assert(isrow(efforts));
@@ -71,8 +77,9 @@ function [params] = vehicle_params(mode, file_name, sim_name)
             params.cd_array = xarray(cd_values, mach = machs, effort = efforts);
             params.DRAG_LUT = xarray2lut(params.cd_array, ["mach", "effort"]);
 
-            params.SERVO_TC = 0.1;
-            params.SERVO_BL = 0.01;
+            % params.SERVO_TC = 0.1;
+            params.SERVO_TC = 0.04;
+            params.SERVO_BL = 0.005;
         otherwise
             error("Unrecognized mode '%s'", mode)
     end

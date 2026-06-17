@@ -1,26 +1,54 @@
 %% DEFINE PROJECT GLOBALS
 
-launch_name = "testbed";
+launch_name = "risk";
 
 launch_file = pfullfile("launches", launch_name);
-rocket_file = string(dir(fullfile(launch_file,"openrocket","*.ork")).name);
-rkt_file = fullfile(launch_file,"openrocket",rocket_file);
+
+use_custom_atm = 1;
+atm_file = fullfile(launch_file,"atmosphere",string(dir(fullfile(launch_file,"atmosphere","*.mat")).name));
+load(atm_file);
+airdata.TMP = airdata.TMP + 273.15; % Convert C to K
+
+rocket_file_name = string(dir(fullfile(launch_file,"openrocket","*.ork")).name);
+rkt_file = fullfile(launch_file,"openrocket",rocket_file_name);
 luts_file = fullfile(launch_file,"cached","lutdata.mat");
 runs_file = fullfile(launch_file,"cached","rundata.mat");
 run(fullfile(launch_file,"target","target.m"));
 flight_info_file = fullfile(launch_file,"cached","flight_info.mat");
+drag_file_name = string(dir(fullfile(launch_file,"drag","*.mat")).name);
+drag_file = fullfile(launch_file,"drag",drag_file_name);
 
-use_custom_atm = true;
-atm_file = fullfile(launch_file,"atmosphere",string(dir(fullfile(launch_file,"atmosphere","*.mat")).name));
-load(atm_file);
-airdata.TMP = airdata.TMP + 273.15; % Convert C to K
-PRES = interp1(airdata.HGT,airdata.PRES,[0;airdata.HGT],"linear","extrap");
-HGT = [0;airdata.HGT];
-TMP = [airdata.TMP(1);airdata.TMP];
-UGRD = [airdata.UGRD(1);airdata.UGRD];
-VGRD = [airdata.VGRD(1);airdata.VGRD];
+% Resample atmosphere model so it has uniformly spaced pressures for
+% embedded implementation of linear interp
+% PRES = ((100000+2500):-2500:60000)';
+% PRES = ((100000):-2500:60000)';
+PRES = ((100000):-2500:100)';
+HGT = interp1(airdata.PRES,airdata.HGT,PRES,"linear","extrap");
+TMP = interp1(airdata.PRES,airdata.TMP,PRES,"linear","extrap");
+UGRD = interp1(airdata.PRES,airdata.UGRD,PRES,"linear","extrap");
+VGRD = interp1(airdata.PRES,airdata.VGRD,PRES,"linear","extrap");
 airdata = table(PRES,HGT,TMP,UGRD,VGRD);
 clear PRES HGT TMP UGRD VGRD;
+
+% % Resample atmosphere model so it has uniformly spaced pressures for
+% % embedded implementation of linear interp
+% PRES = ((100000):-2500:60000)';
+% HGT = interp1(airdata.PRES,airdata.HGT,PRES,"linear","extrap");
+% TMP = interp1(airdata.PRES,airdata.TMP,PRES,"linear","extrap");
+% UGRD = interp1(airdata.PRES,airdata.UGRD,PRES,"linear","extrap");
+% VGRD = interp1(airdata.PRES,airdata.VGRD,PRES,"linear","extrap");
+% airdata = table(PRES,HGT,TMP,UGRD,VGRD);
+% clear PRES HGT TMP UGRD VGRD;
+
+% % This is old but can fix an issue where the launchsite altitude is below
+% % the lowest in the atmosphere model and needs extrapolation
+% PRES = interp1(airdata.HGT,airdata.PRES,[0;airdata.HGT],"linear","extrap");
+% HGT = [0;airdata.HGT];
+% TMP = [airdata.TMP(1);airdata.TMP];
+% UGRD = [airdata.UGRD(1);airdata.UGRD];
+% VGRD = [airdata.VGRD(1);airdata.VGRD];
+% airdata = table(PRES,HGT,TMP,UGRD,VGRD);
+% clear PRES HGT TMP UGRD VGRD;
 
 % % Rocket Selection
 % rkt_option = 3;
@@ -81,7 +109,10 @@ if ~isfile(flight_info_file)
     else
         orkdata = doc.simulate(orksim, outputs = "ALL");
     end
-    mach_at_burnout = orkdata{eventfilter("BURNOUT"), "Mach number"};
+    % In case events like burnout don't align perfectly with times
+    events = orkdata.Properties.Events;
+    eventdata = retime(orkdata,unique(events.Time),"linear");
+    mach_at_burnout = eventdata{eventfilter("BURNOUT"), "Mach number"};
     if mach_at_burnout >= 0.8
         % Determined by when rocket is less than mach 0.8
         orkdata_burnout_to_apogee = orkdata(timerange(eventfilter("BURNOUT"), eventfilter("APOGEE")),:);
@@ -89,18 +120,19 @@ if ~isfile(flight_info_file)
         time_to_mach = orkdata_burnout_to_apogee.Properties.RowTimes(index_to_mach);
         vel_max = orkdata{time_to_mach, "Vertical velocity"}; % Velocity for 0.8Ma
         alt_start = orkdata{time_to_mach, "Altitude"}; % Altitude at which rocket falls below 0.8Ma
-        clear orkdata_burnout_to_apogee index_to_mach time_to_mach
+        % clear orkdata_burnout_to_apogee index_to_mach time_to_mach\
+        clear orkdata_burnout_to_apogee index_to_mach
     else
         % Determined by motor burnout
-        vel_max = orkdata{eventfilter("BURNOUT"), "Vertical velocity"};
-        alt_start = orkdata{eventfilter("BURNOUT"), "Altitude"};
+        vel_max = eventdata{eventfilter("BURNOUT"), "Vertical velocity"};
+        alt_start = eventdata{eventfilter("BURNOUT"), "Altitude"};
     end
     % vel_max = vel_max - 0; % Helps if typical_variation fails from not finding start time
     time_to_burnout = seconds(orkdata.Properties.Events.Time(orkdata.Properties.Events.EventLabels == "BURNOUT"));
     time_to_sim_end = seconds(orkdata.Properties.Events.Time(orkdata.Properties.Events.EventLabels == "SIMULATION_END" ));
-    clear orkdata mach_at_burnout
+    % clear orkdata mach_at_burnout
 
-    save(fullfile(launch_file, "cached", "flight_info.mat"), "vel_max", "alt_start", "time_to_burnout", "time_to_sim_end");
+    save(fullfile(launch_file, "cached", "flight_info.mat"), "vel_max", "alt_start", "time_to_burnout", "time_to_sim_end", "time_to_mach");
 else
     load(flight_info_file);
 end

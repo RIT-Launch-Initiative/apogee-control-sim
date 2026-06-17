@@ -31,6 +31,7 @@ inputs.accel = timeseries(orkdata{:, ["Lateral acceleration", "Vertical accelera
 inputs.pitch = orkdata(:, "Vertical orientation (zenith)");
 
 simin = structs2inputs(pfullfile("sim", "sim_kalman"), kalm_p, alt_p, accel_p);
+% simin = structs2inputs(pfullfile("sim", "sim_controller"), kalm_p, alt_p, accel_p);
 simin = structs2inputs(simin, inputs);
 
 load(fullfile(launch_file,"tune","tune.mat"));
@@ -42,10 +43,16 @@ simin = simin.setModelParameter(SimulationMode = "accelerator", FastRestart = "o
 simout = sim(simin);
 logs = extractTimetable(simout.logsout);
 
+TR = timerange(seconds(0),seconds(burnout_time));
+orkdata = orkdata(TR,:);
+
+TR = timerange(seconds(burnout_time),seconds(100));
+logs = logs(TR,:);
+
 writematrix(["# Time (s)" "Vertical acceleration (m/s²)" "Lateral acceleration (m/s²)" "Roll rate (rad/s)" "Pitch rate (rad/s)" "Yaw rate (rad/s)" "Air temperature (°C)" "Air pressure (mbar)";...
-    seconds(logs.Time) logs.acceleration(:,2) -logs.acceleration(:,1) ...
-    zeros([length(logs.acceleration) 1]) zeros([length(logs.acceleration) 1]) zeros([length(logs.acceleration) 1]) ...
-    zeros([length(logs.acceleration) 1]) logs.pressure_meas/100],fullfile(launch_file,"testing","fake_flight_data.csv"),"WriteMode","overwrite");
+    [seconds(orkdata.Time); seconds(logs.Time)] [orkdata{:,"Vertical acceleration"}; logs.acceleration(:,2)] [orkdata{:,"Lateral acceleration"}; -logs.acceleration(:,1)] ...
+    [zeros([length(orkdata.Time) 1]); zeros([length(logs.acceleration) 1])] [zeros([length(orkdata.Time) 1]); zeros([length(logs.acceleration) 1])] [zeros([length(orkdata.Time) 1]); zeros([length(logs.acceleration) 1])] ...
+    [zeros([length(orkdata.Time) 1]); zeros([length(logs.acceleration) 1])] [orkdata{:,"Air pressure"}./1000; logs.pressure_meas./1000]],fullfile(launch_file,"testing","fake_flight_data.csv"),"WriteMode","overwrite");
 
 set_param(simin.ModelName, FastRestart = "off");
 
@@ -162,7 +169,7 @@ set_param(simin.ModelName, FastRestart = "off");
 %         error ("Unrecognzied case %s", ctrl_under_test);
 % end
 % 
-% simin = structs2inputs(simin, vehicle_params("openrocket", rkt_file, sim_name));
+% simin = structs2inputs(simin, vehicle_params("openrocket", rkt_file, sim_name, drag_file));
 % simin = structs2inputs(simin, inits);
 % simin = simin.setVariable(dt = 0.01);
 % 

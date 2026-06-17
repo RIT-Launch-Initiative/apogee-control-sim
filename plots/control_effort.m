@@ -6,7 +6,7 @@ if use_custom_atm
 else
     simdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE");
 end
-vehicle_data = vehicle_params("openrocket", rkt_file, sim_name);
+vehicle_data = vehicle_params("openrocket", rkt_file, sim_name, drag_file);
 inits = get_initial_data(simdata);
 ctrl.control_mode = "const";
 ctrl.brake_on = inits.t_0;
@@ -22,7 +22,7 @@ areas = cases.const_brake * vehicle_data.plate_drag_area; %areas=areas.*1.2;
 simouts = sim(simins, UseFastRestart = "on");
 efforts = simouts(1).apogee - [simouts.apogee];
 
-my_area = 1.2*(0.002678716) * 2; % m2
+my_area = 0.98*(0.002678716) * 2; % m2
 areas_smooth = linspace(areas(1), areas(end), 100);
 efforts_smooth = interp1(areas, efforts, areas_smooth);
 [~, areas_smooth_index] = min(abs(areas_smooth - my_area));
@@ -33,17 +33,17 @@ grid on; hold on;
 plot(1e4 * areas, efforts, "+");
 %yline(max(simdata.Altitude) - apogee_target, "--k", "Required");
 plot([my_area*1e4, my_area*1e4, 0], [0, current_apogee_reduction, current_apogee_reduction]);
-text(0.5, current_apogee_reduction+25, sprintf('%.0f', current_apogee_reduction), "Color", "red");
+text(0.5, current_apogee_reduction+8, sprintf('%.0f', current_apogee_reduction), "Color", "red");
 %yline(max(simdata.Altitude) - apogee_target, "--k", "Required");
 xlabel("Fully-extended Cda");
 xsecondarylabel("cm^2");
 ylabel("Apogee reduction");
 ysecondarylabel("m");
 %legend("Calculated", "Current Reduction");
-title("RISK Apogee Reduction Cd = 1.2");
-effort_figure.WindowStyle = 'normal';
-effort_figure.Units = "pixels";
-effort_figure.Position = [0 0 400 300];
+title("RISK Apogee Reduction Cd = 0.98");
+effort_figure.WindowStyle = 'normal'; % Change for publishing graphs
+% effort_figure.Units = "pixels";
+% effort_figure.Position = [0 0 400 300];
 
 % ylim([0 460]);
 

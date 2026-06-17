@@ -20,7 +20,7 @@ function params = accel_params(mode)
             params.ACCEL_LSB = 5e-4;
             params.ACCEL_RANGE = 16 * 9.81;
         case "controls_module"
-            params.ACCEL_COV = 2.36595924831594e-05; % [(m/s^2)^2] From emma's L1
+            params.ACCEL_COV = (0.00813558389199730)^2; % [(m/s^2)^2]
             params.ACCEL_BIAS = 0;
             params.ACCEL_LSB = 4.88e-3; % [m/s^2]
             params.ACCEL_RANGE = 16 * 9.81; % *sqrt(2) for L1 mounts
