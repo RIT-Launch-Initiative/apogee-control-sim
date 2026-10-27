@@ -1,24 +1,20 @@
 %% DEFINE PROJECT GLOBALS
 
 % Rocket Selection
-rkt_option = 4;
+rkt_option = 3;
 
 % Switch case to select the rocket file and the correct nominal case
 switch rkt_option
     case 1
-        rocket_file = "OMEN.ork";
-        sim_name = "MATLAB";
-        apogee_target = 3300; % [m] altitude we are targeting (10,000ft)
-    case 2
         rocket_file = "TB-1.ork";
         sim_name = "15mph_URRG";
         apogee_target = 1350; % [m]
-    case 3
-        rocket_file = "IREC-2026-M3400.ork";
+    case 2
+        rocket_file = "RISK.ork";
         sim_name = "15mph-Midland";
-        apogee_target = 3048; % [m]
-    case 4
-        rocket_file = "IREC-2026-N3800.ork";
+        apogee_target = 3300; % [m]
+    case 3
+        rocket_file = "IREC-2027.ork";
         sim_name = "15mph-Midland";
         apogee_target = 3048; % [m]
     otherwise
@@ -34,7 +30,7 @@ luts_file = pfullfile("data", "lutdata.mat");
 % Cache for large Monte Carlo runs
 runs_file = pfullfile("data", "rundata.mat");
 
-% where plots go by default
+% Where plots go by default
 graphics_path = pfullfile("refs", "report", "assets");
 if ~isfolder(graphics_path)
     graphics_path = pfullfile("plots");
