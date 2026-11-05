@@ -44,7 +44,7 @@ luts = matfile(luts_file, Writable = true);
 runs = matfile(runs_file, Writable = true);
 
 % Get custom atmosphere model
-load("21-Jun-2025-10.21.00-midland-gfs_1.mat")
+load("16-Jun-2023-07.0.0-spaceport-midland-nam")
 airdata.TMP = airdata.TMP + 273.15; % Convert C to K
 
 % Get vel & alt at the time when airbrakes can first extend, following DTEG rules

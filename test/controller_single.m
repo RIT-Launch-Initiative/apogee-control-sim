@@ -18,8 +18,8 @@ inits = get_initial_data(orkdata);
 
 switch sensor_mode
     case "noisy"
-        simin = structs2inputs(simin, accel_params("lsm6dsl"));
-        simin = structs2inputs(simin, baro_params("bmp388"));
+        simin = structs2inputs(simin, accel_params("lsm6dsv-45-deg"));
+        simin = structs2inputs(simin, baro_params("ms5611"));
     case "ideal"
         simin = structs2inputs(simin, accel_params("ideal"));
         simin = structs2inputs(simin, baro_params("ideal"));
@@ -37,10 +37,10 @@ switch filt_under_test
         % the initial state is not likely to be perfect, but this is more
         % realistic than using all-zeros 
         initdata = retime(orkdata, seconds(inits.t_0));
-        params.kalm_initial = [initdata.Altitude; 
-            initdata.("Vertical velocity");
-            initdata.("Vertical acceleration");
-            9.81];
+        params.kalm_initial = [0; 
+                               0;
+                               0;
+                               0];
 
         simin = simin.setVariable(filter_mode = "kalman");
         simin = structs2inputs(simin, params);
@@ -51,7 +51,7 @@ end
 
 switch ctrl_under_test
     case "exhaust"
-        simin = simin.setVariable(controller_rate = 10);
+        simin = simin.setVariable(controller_rate = 100);
         simin = simin.setVariable(control_mode = "exhaust");
         simin = simin.setVariable(baro_lut = ...
             xarray2lut(lookups.exhaust_100_by_100, ["vel", "alt"]));
@@ -61,18 +61,18 @@ switch ctrl_under_test
             % Preloads the lookup table if it is available
             lookups = matfile(luts_file, Writable = false);
         else
-            generate_quant_luts; % Generates the quantile lookup table
+            generate_bounds; % Generates the quantile lookup table
             lookups = matfile(luts_file, Writable = false);
         end
 
-        simin = simin.setVariable(controller_rate = 10);
+        simin = simin.setVariable(controller_rate = 100);
         simin = simin.setVariable(control_mode = "quant");
         simin = simin.setVariable(lower_bound_lut = ...
             xarray2lut(lookups.lower_bounds, "alt"));
         simin = simin.setVariable(upper_bound_lut = ...
             xarray2lut(lookups.upper_bounds, "alt"));
     case "s_function"
-        simin = simin.setVariable(controller_rate = 10);
+        simin = simin.setVariable(controller_rate = 100);
         simin = simin.setVariable(control_mode = "s");
     otherwise
         error ("Unrecognzied case %s", ctrl_under_test);
@@ -80,7 +80,14 @@ end
 
 simin = structs2inputs(simin, vehicle_params("openrocket", rocket_file, sim_name));
 simin = structs2inputs(simin, inits);
-simin = simin.setVariable(dt = 0.001);
+simin = simin.setVariable(dt = 0.01);
+
+% For starting simulation on ground
+orkdata_for_simulink = orkdata(:,[]);
+orkdata_for_simulink.position = [orkdata.("Lateral distance") orkdata.Altitude];
+orkdata_for_simulink.velocity = [orkdata.("Lateral velocity") orkdata.("Vertical velocity")];
+orkdata_for_simulink.acceleration = [orkdata.("Lateral acceleration") orkdata.("Vertical acceleration")];
+simin = simin.setVariable(orkdata_for_simulink = orkdata_for_simulink);
 
 simout = sim(simin);
 logs = extractTimetable(simout.logsout);
@@ -92,46 +99,49 @@ meas_args = {"DisplayName", "Measured"};
 est_args = {"DisplayName", "Estimated"};
 
 figure(name = "State estimation");
-layout = tiledlayout(3,2);
+layout = tiledlayout(3, 2, TileSpacing="compact", Padding="compact");
 layout.TileIndexing = "rowmajor";
 
-nexttile; hold on; grid on;
+axes_states(1) = nexttile; hold on; grid on;
 plot(logs.Time, logs.position(:,2), true_args{:});
 % plot(logs.Time, logs.altitude_meas, meas_args{:});
 plot(logs.Time, logs.altitude_est, est_args{:});
 ylabel("Altitude");
 ysecondarylabel("m AGL");
 
-nexttile; hold on; grid on;
+axes_states(end + 1) = nexttile; hold on; grid on;
 plot(logs.Time, logs.altitude_est - logs.position(:,2));
 ylabel("Error");
 ysecondarylabel("m");
 
-nexttile; hold on; grid on;
+axes_states(end + 1) = nexttile; hold on; grid on;
 plot(logs.Time, logs.velocity(:,2), true_args{:});
 % plot(logs.Time, logs.velocity_meas, meas_args{:});
 plot(logs.Time, logs.velocity_est, est_args{:});
 ylabel("Vertical velocity");
 ysecondarylabel("m/s");
 
-nexttile; hold on; grid on;
+axes_states(end + 1) = nexttile; hold on; grid on;
 plot(logs.Time, logs.velocity_est - logs.velocity(:,2));
 ylabel("Error");
 ysecondarylabel("m/s");
 
-nexttile; hold on; grid on;
+axes_states(end + 1) = nexttile; hold on; grid on;
 plot(logs.Time, logs.acceleration(:,2), true_args{:});
 plot(logs.Time, logs.accel_meas, meas_args{:});
 plot(logs.Time, logs.accel_est, est_args{:});
 ylabel("Vertical acceleration");
 ysecondarylabel("m/s^2");
 xlabel("Time");
+legend;
 
-nexttile; hold on; grid on;
+axes_states(end + 1) = nexttile; hold on; grid on;
 plot(logs.Time, logs.accel_est - logs.acceleration(:,2));
 ylabel("Error");
 ysecondarylabel("m/s^2");
 xlabel("Time");
+
+linkaxes(axes_states, "x");
 
 
 figure(name = "Effort history");
@@ -155,4 +165,4 @@ xlabel("Time");
 
 % Closes all simulink models after running
 % Fixes some errors if you need to regenerate data
-bdclose('all')
+% bdclose('all')

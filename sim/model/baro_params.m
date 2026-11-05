@@ -11,7 +11,7 @@ function params = baro_params(mode)
             noise_rms = 4.3; % [Pa]
             params.BARO_COV = noise_rms^2;
             params.BARO_LSB = 1.32; % [Pa];
-        case "ctrl"
+        case "ms5611"
             noise_rms = 7; % [Pa]
             params.BARO_COV = noise_rms^2;
             params.BARO_LSB = 1.32; % [Pa];

@@ -39,8 +39,8 @@ simin = simin.setVariable(t_0 = inits.t_0);
 
 switch sensor_mode
     case "noisy"
-        simin = structs2inputs(simin, accel_params("lsm6dsl"));
-        simin = structs2inputs(simin, baro_params("bmp388"));
+        simin = structs2inputs(simin, accel_params("lsm6dsv-45-deg"));
+        simin = structs2inputs(simin, baro_params("ms5611"));
     case "ideal"
         simin = structs2inputs(simin, accel_params("ideal"));
         simin = structs2inputs(simin, baro_params("ideal"));
@@ -50,7 +50,7 @@ end
 
 switch ctrl_under_test
     case "exhaust"
-        simin = simin.setVariable(controller_rate = 10);
+        simin = simin.setVariable(controller_rate = 100);
         simin = simin.setVariable(control_mode = "exhaust");
         simin = simin.setVariable(baro_lut = ...
             xarray2lut(luts.exhaust_100_by_100, ["vel", "alt"]));
@@ -60,20 +60,20 @@ switch ctrl_under_test
             % Preloads the lookup table if it is available
             lookups = matfile(luts_file, Writable = false);
         else
-            generate_quant_luts; % Generates the quantile lookup table
+            generate_bounds; % Generates the quantile lookup table
             lookups = matfile(luts_file, Writable = false);
         end
-        simin = simin.setVariable(controller_rate = 10);
+        simin = simin.setVariable(controller_rate = 100);
         simin = simin.setVariable(control_mode = "quant");
         simin = simin.setVariable(lower_bound_lut = ...
             xarray2lut(luts.lower_bounds, "alt"));
         simin = simin.setVariable(upper_bound_lut = ...
             xarray2lut(luts.upper_bounds, "alt"));
     case "s_function"
-        simin = simin.setVariable(controller_rate = 10);
+        simin = simin.setVariable(controller_rate = 100);
         simin = simin.setVariable(control_mode = "s");
     case "quantile_tracking"
-        % simin = simin.setVariable(controller_rate = 100);
+        % simin = simin.setVariable(controller_rate = 1000);
         % simin = simin.setVariable(control_mode = "tracking");
         % simin = simin.setVariable(lower_bound_lut = ...
         %     xarray2lut(luts.lower_bounds, "alt"));
@@ -216,4 +216,4 @@ fprintf("Final apogee error quartiles: [%+.1f %+.2f %+.1f] m\n", ...
 
 % Closes all simulink models after running
 % Fixes some errors if you need to regenerate data
-bdclose('all')
+% bdclose('all')
