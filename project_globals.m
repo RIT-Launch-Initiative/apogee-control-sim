@@ -47,6 +47,8 @@ runs = matfile(runs_file, Writable = true);
 load("16-Jun-2023-07.0.0-spaceport-midland-nam")
 airdata.TMP = airdata.TMP + 273.15; % Convert C to K
 
+generate_target;
+
 % Get vel & alt at the time when airbrakes can first extend, following DTEG rules
 orkdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE", atmos = airdata);
 mach_at_burnout = orkdata{eventfilter("BURNOUT"), "Mach number"};

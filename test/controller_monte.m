@@ -17,7 +17,7 @@ if isfile(runs_file)
     % Preloads the variations for the monte carlo if it is available
     lookups = matfile(runs_file, Writable = false);
 else
-    typical_variation; % Generates the variations for the monte carlo
+    generate_monte_cases; % Generates the variations for the monte carlo
     lookups = matfile(runs_file, Writable = false);
 end
 

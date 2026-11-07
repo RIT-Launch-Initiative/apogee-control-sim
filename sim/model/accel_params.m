@@ -14,6 +14,11 @@ function params = accel_params(mode)
             params.ACCEL_BIAS = 0;
             params.ACCEL_LSB = 488e-6 * 9.81;
             params.ACCEL_RANGE = 16 * 9.81;
+        case "lsm6dsv"
+            params.ACCEL_COV = 0.0361;
+            params.ACCEL_BIAS = 0;
+            params.ACCEL_LSB = 5e-4;
+            params.ACCEL_RANGE = 16 * 9.81;
         case "lsm6dsv-45-deg"
             params.ACCEL_COV = 0.0361;
             params.ACCEL_BIAS = 0;
