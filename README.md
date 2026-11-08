@@ -1,3 +1,8 @@
+# Quick Glance
+![Max margin clean](/plots/max_margin_control.png?raw=true "Max margin control with clean data")
+![Max margin noisy](/plots/max_margin_control_noisy.png?raw=true "Max margin control with noisy sensor data")
+![Constant effort noisy](/plots/const_effort_control_noisy.png?raw=true "Constant effort control with noisy sensor data")
+
 # apogee-control-sim
 Simulations for RIT Launch's prototype apogee control system. 
 

@@ -1,17 +1,23 @@
 clear;
 project_globals;
 
-turn_airbrakes_off = true;
+turn_airbrakes_off = false;
+target_const_effort = 0.5;
+Kp = 2; % Kp = 0 is constant effort
+         % Kp > 0 is maximum margin
+         % Kp = 10 is good value for settling time
 
-sensor_mode = "noisy";
-% sensor_mode = "ideal";
+% sensor_mode = "noisy";
+sensor_mode = "ideal";
 
+% filt_under_test = "through";
 % filt_under_test = "butter";
 filt_under_test = "kalman";
 
 % ctrl_under_test = "exhaust";
-ctrl_under_test = "quantile_effort";
+% ctrl_under_test = "quantile_effort";
 % ctrl_under_test = "s_function";
+ctrl_under_test = "maxm";
 
 simin = Simulink.SimulationInput("sim_controller");
 
@@ -30,6 +36,8 @@ switch sensor_mode
 end
 
 switch filt_under_test
+    case "through"
+        simin = simin.setVariable(filter_mode = "through");
     case "butter"
         simin = simin.setVariable(filter_mode = "butter");
         simin = structs2inputs(simin, alt_filter_params("designed"));
@@ -46,7 +54,6 @@ switch filt_under_test
 
         simin = simin.setVariable(filter_mode = "kalman");
         simin = structs2inputs(simin, params);
-
     otherwise
         error ("Unrecognzied case %s", filt_under_test);
 end
@@ -76,6 +83,25 @@ switch ctrl_under_test
     case "s_function"
         simin = simin.setVariable(controller_rate = 100);
         simin = simin.setVariable(control_mode = "s");
+    case "maxm"
+        % loads the .mat file if is exists, otherwise it generates it
+        if isfile(luts_file)
+            % Preloads the lookup table if it is available
+            lookups = matfile(luts_file, Writable = false);
+        else
+            generate_bounds; % Generates the quantile lookup table
+            lookups = matfile(luts_file, Writable = false);
+        end
+
+        simin = simin.setVariable(controller_rate = 100);
+        simin = simin.setVariable(control_mode = "maxm");
+        simin = simin.setVariable(lower_bound_lut = ...
+            xarray2lut(lookups.lower_bounds, "alt"));
+        simin = simin.setVariable(upper_bound_lut = ...
+            xarray2lut(lookups.upper_bounds, "alt"));
+
+        simin = simin.setVariable(target_const_effort = target_const_effort);
+        simin = simin.setVariable(Kp = Kp);
     otherwise
         error ("Unrecognzied case %s", ctrl_under_test);
 end
@@ -152,22 +178,33 @@ xlabel("Time");
 linkaxes(axes_states, "x");
 
 
+lower_bounds = luts.lower_bounds;
+upper_bounds = luts.upper_bounds;
+
 figure(name = "Effort history");
 layout = tiledlayout(3,1);
 
 nexttile([2 1]); hold on; grid on;
+
+plot(logs.position(:,2), interp1(lower_bounds.alt, lower_bounds.data, logs.position(:,2)), "--k", DisplayName="Lower bound");
+plot(logs.position(:,2), interp1(upper_bounds.alt, upper_bounds.data, logs.position(:,2)), "--k", DisplayName="Upper bound");
+
 plot(logs.position(:,2), logs.velocity(:,2), true_args{:});
 plot(logs.altitude_est, logs.velocity_est, est_args{:});
-xline(apogee_target);
+xline(apogee_target, DisplayName="Target apogee");
 xlabel("Altitude");
 xsecondarylabel("m AGL");
 ylabel("Vertical velocity");
 ysecondarylabel("m/s");
 legend;
+xlim([min(lower_bounds.alt) max(logs.position(:,2))*1.01]);
+ylim([0 max(upper_bounds.data)])
 
 nexttile; hold on; grid on;
 plot(logs.Time, logs.effort, "--", SeriesIndex = 1, DisplayName = "Controller effort");
 plot(logs.Time, logs.extension, "-", SeriesIndex = 1, DisplayName = "Extension");
+yline(target_const_effort, "--k", DisplayName = "Target const. effort", LineWidth=2);
+plot(logs.Time, logs.const_effort, "-r", SeriesIndex = 1, DisplayName = "Const. effort");
 legend;
 ylabel("Airbrake extension");
 xlabel("Time");
