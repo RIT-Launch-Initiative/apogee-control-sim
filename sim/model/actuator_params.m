@@ -6,7 +6,7 @@ function params = actuator_params(mode)
     switch mode
         case "ideal"
             params.SERVO_BL = 1e-10;
-            params.SERVO_TC = 0.01/4;
+            params.SERVO_TC = 0.000001/4;
         case "laggy"
             params.SERVO_BL = 0.5e-3 / 4e-2; % 0.5mm to fraction
             servo_angle_range = 152.569 - 9.169; % [deg]

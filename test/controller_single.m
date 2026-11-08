@@ -3,16 +3,16 @@ project_globals;
 
 turn_airbrakes_off = false;
 target_const_effort = 0.5;
-Kp = 2; % Kp = 0 is constant effort
+Kp = 10; % Kp = 0 is constant effort
          % Kp > 0 is maximum margin
          % Kp = 10 is good value for settling time
 
 % sensor_mode = "noisy";
 sensor_mode = "ideal";
 
-% filt_under_test = "through";
+filt_under_test = "through";
 % filt_under_test = "butter";
-filt_under_test = "kalman";
+% filt_under_test = "kalman";
 
 % ctrl_under_test = "exhaust";
 % ctrl_under_test = "quantile_effort";

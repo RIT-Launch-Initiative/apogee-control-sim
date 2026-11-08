@@ -72,7 +72,7 @@ function [params] = vehicle_params(mode, file_name, sim_name)
             params.cd_array = xarray(cd_values, mach = machs, effort = efforts);
             params.DRAG_LUT = xarray2lut(params.cd_array, ["mach", "effort"]);
 
-            my_actuator_params = actuator_params("laggy");
+            my_actuator_params = actuator_params("ideal");
             params.SERVO_BL = my_actuator_params.SERVO_BL;
             params.SERVO_TC = my_actuator_params.SERVO_TC;
         otherwise
