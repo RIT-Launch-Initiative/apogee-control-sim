@@ -1,4 +1,11 @@
 # Quick Glance
+## Description
+Every rocket state has a constant effort that results in reaching the target
+apogee if applied for the entire flight. This controller applies a proportional effort
+over time that makes the constant effort required to reach apogee trend toward 50%.
+This maximizes controllablility in the future.
+
+## Examples
 ![Max margin clean](/plots/max_margin_control.png?raw=true "Max margin control with clean data")
 ![Max margin noisy](/plots/max_margin_control_noisy.png?raw=true "Max margin control with noisy sensor data")
 ![Constant effort noisy](/plots/const_effort_control_noisy.png?raw=true "Constant effort control with noisy sensor data")
