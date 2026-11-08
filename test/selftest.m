@@ -5,6 +5,8 @@
 clear;
 project_globals;
 
+turn_airbrakes_off = true;
+
 %% Set up orkdata
 
 orksim = doc.sims(sim_name);
@@ -13,7 +15,19 @@ opts.setISAAtmosphere(true);
 opts.setWindSpeedAverage(0);
 opts.setWindSpeedDeviation(0);
 % opts.setLaunchRodAngle(deg2rad(70));
-orkdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE", atmos = airdata);
+orkdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE");%, atmos = airdata);
+
+% For starting simulation on ground
+orkdata_for_simulink = orkdata(:,[]);
+orkdata_for_simulink.position = [orkdata.("Lateral distance") orkdata.Altitude];
+orkdata_for_simulink.velocity = [orkdata.("Lateral velocity") orkdata.("Vertical velocity")];
+orkdata_for_simulink.acceleration = [orkdata.("Lateral acceleration") orkdata.("Vertical acceleration")];
+orkdata_for_simulink.pitch = orkdata.("Vertical orientation (zenith)");
+orkdata_for_simulink(seconds(0), :) = orkdata_for_simulink(1,:); % zero out OR weirdness at time zero
+orkdata_for_simulink = sortrows(orkdata_for_simulink);
+orkdata_for_simulink(1:2, :).position = [0 0; 0 0];
+orkdata_for_simulink(1:2, :).velocity = [0 0; 0 0];
+orkdata_for_simulink(1:2, :).acceleration = [0 0; 0 0];
 
 vehicle_data = vehicle_params("openrocket", rocket_file, sim_name);
 inits = get_initial_data(orkdata);
@@ -35,6 +49,9 @@ simin_full = structs2inputs("sim_controller", vehicle_data, ...
 
 simin_cut = structs2inputs("sim_const", vehicle_data, inits, ctrl);
 simin_cut = simin_cut.setModelParameter(FastRestart = "on", SimulationMode = "accelerator");
+
+simin_full = simin_full.setVariable(orkdata_for_simulink = orkdata_for_simulink);
+simin_cut = simin_cut.setVariable(orkdata_for_simulink = orkdata_for_simulink);
 
 %% Get simulated data
 simout_full = sim(simin_full);

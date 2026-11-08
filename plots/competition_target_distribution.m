@@ -18,26 +18,11 @@ end
 atmos_files(idx_to_remove) = [];
 num_files = length(atmos_files);
 
-
-% tiledlayout(4,1,"TileSpacing","compact","Padding","compact");
-% sgtitle("sd");
-
-% nexttile;
-% for i = 1:num_files
-%     filename = atmos_files(i).name;
-%     dt = datetime(filename(1:18),"Format","d-MMM-yyyy-HH.m.s");
-%     load(filename);
-%     % atms.year = dt.Year;
-%     plot(airdata.PRES/1000,airdata.HGT,"Color",[0.2 0.2 1 0.3]);hold on;
-% end
-
-targets = NaN([num_files 1]);
-
-figure(1);
-clf;
+figure(name = "Pressure altitudes");
 tiledlayout(1, 1, TileSpacing="compact", Padding="compact");
 nexttile;
 
+targets = NaN([num_files 1]);
 for i_file = 1:num_files
     filename = atmos_files(i_file).name;
     dt = datetime(filename(1:18),"Format","d-MMM-yyyy-HH.m.s");
@@ -60,27 +45,21 @@ for i_file = 1:num_files
 end
 
 xlim([65e3 100e3]);
-
 xline(70e3);
-
+xlabel("Pressure (Pa)");
+ylabel("Altitude ASL (m)");
+title("Apogee target distribution (range = " + string(round(range(targets), 0)) + " m)");
 grid on;
 
-figure(2);
-clf;
-
+figure(name = "Apogee target distribution");
 tiledlayout(1, 1, TileSpacing="compact", Padding="compact");
-
 nexttile;
+
 histogram(targets, num_files);
 
-xlabel("Geometric apogee target (m)");
+xlabel("Target apogee AGL (m)");
 ylabel("Count (-)");
-
 text(min(targets), 0, string(round(min(targets),0)), VerticalAlignment="bottom", HorizontalAlignment="right", Color="k", FontWeight="bold", FontSize=18);
 text(max(targets), 0, string(round(max(targets),0)), VerticalAlignment="bottom", HorizontalAlignment="left",  Color="k", FontWeight="bold", FontSize=18);
-
-title("Midland apogee target distribution (range = " + string(round(range(targets), 0)) + " m)");
-
+title("Apogee target distribution (range = " + string(round(range(targets), 0)) + " m)");
 grid on;
-
-% figure(1);

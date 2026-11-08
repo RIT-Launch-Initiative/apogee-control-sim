@@ -12,7 +12,7 @@ function params = actuator_params(mode)
             servo_angle_range = 152.569 - 9.169; % [deg]
             servo_time_per_angle = 0.110 / 60; % [s/deg]
             servo_open_time = servo_angle_range * servo_time_per_angle; % [s]
-            settling_time_to_TC = 3; % for 95% settled
+            settling_time_to_TC = 4; % for 95% settled
             params.SERVO_TC = servo_open_time / settling_time_to_TC; % [s]
         otherwise
             error("Unrecognzied actuator mode %s", mode)

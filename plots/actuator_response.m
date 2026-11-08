@@ -16,4 +16,4 @@ xlabel("Time");
 legend;
 
 
-print2size(act_figure, fullfile(graphics_path, "actuator_response.pdf"), [800 350]);
+% print2size(act_figure, fullfile(graphics_path, "actuator_response.pdf"), [800 350]);

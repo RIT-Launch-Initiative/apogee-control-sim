@@ -1,7 +1,7 @@
 clear;
 project_globals;
 
-simdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE");
+simdata = doc.simulate(orksim, outputs = "ALL", stop = "APOGEE"); %, atmos = airdata);
 vehicle_data = vehicle_params("openrocket", rocket_file, sim_name);
 inits = get_initial_data(simdata);
 ctrl.control_mode = "const";
@@ -17,17 +17,31 @@ cases = table;
 cases.const_brake = linspace(0, 1, 20)';
 simins = table2inputs(simin, cases);
 
-areas = cases.const_brake * vehicle_data.plate_drag_area;
+areas = cases.const_brake * vehicle_data.plate_drag_area; areas=areas.*1.2;
 simouts = sim(simins, UseFastRestart = "on");
 efforts = simouts(1).apogee - [simouts.apogee];
+
+my_area = 0.98*(0.002829027) * 2; % m2
+areas_smooth = linspace(areas(1), areas(end), 100);
+efforts_smooth = interp1(areas, efforts, areas_smooth);
+[~, areas_smooth_index] = min(abs(areas_smooth - my_area));
+current_apogee_reduction = efforts_smooth(areas_smooth_index);
 
 effort_figure = figure(name = "Airbrake area design curve");
 grid on; hold on;
 plot(1e4 * areas, efforts, "+");
 yline(max(simdata.Altitude) - apogee_target, "--k", "Required");
-xlabel("Fully-extended drag area");
+plot([my_area*1e4, my_area*1e4, 0], [0, current_apogee_reduction, current_apogee_reduction]);
+text(0.5, current_apogee_reduction+8, sprintf('%.0f', current_apogee_reduction), "Color", "red");
+xlabel("Fully-extended Cda");
 xsecondarylabel("cm^2");
 ylabel("Apogee reduction");
 ysecondarylabel("m");
+title("BIRD Apogee Reduction Cd = 0.98");
+% effort_figure.WindowStyle = 'normal'; % Change for publishing graphs
+% effort_figure.Units = "pixels";
+% effort_figure.Position = [0 0 400 300];
 
-print2size(effort_figure, fullfile(graphics_path, "effort_curve.pdf"), 1.5*[420 250]);
+% ylim([0 460]);
+
+% print2size(effort_figure, fullfile(graphics_path, "effort_curve.pdf"), 1.5*[420 250]);

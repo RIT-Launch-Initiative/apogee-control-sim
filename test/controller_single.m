@@ -1,6 +1,8 @@
 clear;
 project_globals;
 
+turn_airbrakes_off = true;
+
 sensor_mode = "noisy";
 % sensor_mode = "ideal";
 
@@ -33,14 +35,14 @@ switch filt_under_test
         simin = structs2inputs(simin, alt_filter_params("designed"));
         simin = structs2inputs(simin, accel_filter_params("designed"));
     case "kalman"
-        params = kalman_filter_params("alt-accel-bias");
+        params = kalman_filter_params("RISK-flown");
         % the initial state is not likely to be perfect, but this is more
         % realistic than using all-zeros 
         initdata = retime(orkdata, seconds(inits.t_0));
         params.kalm_initial = [0; 
                                0;
                                0;
-                               0];
+                               9.8];
 
         simin = simin.setVariable(filter_mode = "kalman");
         simin = structs2inputs(simin, params);
@@ -87,6 +89,12 @@ orkdata_for_simulink = orkdata(:,[]);
 orkdata_for_simulink.position = [orkdata.("Lateral distance") orkdata.Altitude];
 orkdata_for_simulink.velocity = [orkdata.("Lateral velocity") orkdata.("Vertical velocity")];
 orkdata_for_simulink.acceleration = [orkdata.("Lateral acceleration") orkdata.("Vertical acceleration")];
+orkdata_for_simulink.pitch = orkdata.("Vertical orientation (zenith)");
+orkdata_for_simulink(seconds(0), :) = orkdata_for_simulink(1,:); % zero out OR weirdness at time zero
+orkdata_for_simulink = sortrows(orkdata_for_simulink);
+orkdata_for_simulink(1:2, :).position = [0 0; 0 0];
+orkdata_for_simulink(1:2, :).velocity = [0 0; 0 0];
+orkdata_for_simulink(1:2, :).acceleration = [0 0; 0 0];
 simin = simin.setVariable(orkdata_for_simulink = orkdata_for_simulink);
 
 simout = sim(simin);
@@ -150,6 +158,7 @@ layout = tiledlayout(3,1);
 nexttile([2 1]); hold on; grid on;
 plot(logs.position(:,2), logs.velocity(:,2), true_args{:});
 plot(logs.altitude_est, logs.velocity_est, est_args{:});
+xline(apogee_target);
 xlabel("Altitude");
 xsecondarylabel("m AGL");
 ylabel("Vertical velocity");

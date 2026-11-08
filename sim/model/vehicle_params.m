@@ -20,7 +20,7 @@ function [params] = vehicle_params(mode, file_name, sim_name)
             % constants
             machs = [linspace(0, 1.5, 100)]';
             efforts = linspace(0, 1, 20); 
-            plate_cd = 1.2;
+            plate_cd = 0.98;
             plate_num = 2;
             plate_width = sqrt(28.29027)*1e-2; % [m]
             plate_length = plate_width; % [m]
@@ -72,8 +72,9 @@ function [params] = vehicle_params(mode, file_name, sim_name)
             params.cd_array = xarray(cd_values, mach = machs, effort = efforts);
             params.DRAG_LUT = xarray2lut(params.cd_array, ["mach", "effort"]);
 
-            params.SERVO_TC = 0.1;
-            params.SERVO_BL = 0.01;
+            my_actuator_params = actuator_params("laggy");
+            params.SERVO_BL = my_actuator_params.SERVO_BL;
+            params.SERVO_TC = my_actuator_params.SERVO_TC;
         otherwise
             error("Unrecognized mode '%s'", mode)
     end

@@ -20,6 +20,9 @@ function params = kalman_filter_params(mode)
 
 
     switch mode
+        case "RISK-flown"
+            params.kalm_process_cov = diag([1e-4 1e-4 0.05 0.004]);
+            params.kalm_meas_cov = diag([0.051790450 (0.00813558389199730)^2]);
         case "alt-accel-bias"
         % manually tuned
             params.kalm_process_cov = diag([1e-4 1e-4 20 1]); 
