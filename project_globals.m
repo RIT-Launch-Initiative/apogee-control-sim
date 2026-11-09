@@ -27,6 +27,9 @@ luts_file = pfullfile("data", "lutdata.mat");
 % Cache for large Monte Carlo runs
 runs_file = pfullfile("data", "rundata.mat");
 
+% Cache for atmosphere data
+airs_file = pfullfile("data", "airdata.mat");
+
 % Where plots go by default
 graphics_path = pfullfile("refs", "report", "assets");
 if ~isfolder(graphics_path)
@@ -39,6 +42,7 @@ orksim = doc.sims(sim_name);
 orkopts = orksim.getOptions(); 
 luts = matfile(luts_file, Writable = true);
 runs = matfile(runs_file, Writable = true);
+airs = matfile(airs_file, Writable = true);
 
 % Get custom atmosphere model
 load("16-Jun-2025-11.0.0-spaceport-midland-nam")
