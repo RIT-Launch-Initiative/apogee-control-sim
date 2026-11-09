@@ -1,18 +1,21 @@
 project_globals;
 
-num_samples = 100;
+num_samples = 400;
 stored_vars = ["Lateral distance", "Altitude", ...
-    "Lateral velocity", "Vertical velocity", "Wind velocity"];
+               "Lateral velocity", "Vertical velocity", ...
+               "Lateral acceleration", "Vertical acceleration", ...
+               "Vertical orientation (zenith)", ...
+               "Wind velocity"];
 
 % better to randomize wind inside the simulation using OR's Karman wind noise
-orkopts.setWindSpeedAverage(7);
-orkopts.setWindSpeedDeviation(3)
+orkopts.setWindSpeedAverage(9);
+orkopts.setWindSpeedDeviation(4.25)
 orkopts.setTimeStep(0.05);
 
 % define varied parameters
 sample_size = [num_samples 1];
-rod_avg = deg2rad(4);
-rod_spr = deg2rad(1);
+rod_avg = deg2rad(6);
+rod_spr = deg2rad(2);
 rod_angles = rod_avg + rod_spr * 2 * (rand(sample_size) - 0.5); 
 
 tmp_avg = 273.15 + 25;
@@ -38,20 +41,15 @@ cases.wind_off = wdir_offsets;
 cases.cd_scale = cd_scales;
 
 % informational
-cases.wind_speed = NaN(height(cases), 1); 
-cases.apogee = NaN(height(cases), 1); 
-cases.on_time = NaN(height(cases), 1); % time at which airbrake turns on
+cases.wind_speed = NaN(height(cases), 1);
+cases.apogee = NaN(height(cases), 1);
 
-% initial conditions
-cases.position_init = NaN(height(cases), 2); % initial position [x, z]
-cases.velocity_init = NaN(height(cases), 2); % initial velocity [xdot, zdot]
-
-% cases.output = cell(height(cases),1);
+cases.orkdata_for_simulink = cell(height(cases),1);
 
 for i_sim = 1:num_samples
     start = tic;
     orkopts.randomizeSeed();
-    orkopts.setISAAtmosphere(false);
+    % orkopts.setISAAtmosphere(false);
     orkopts.setLaunchRodAngle(cases.rod_angle(i_sim));
     orkopts.setWindDirection(orkopts.getLaunchRodDirection() + cases.wind_off(i_sim));
     orkopts.setLaunchTemperature(cases.temp(i_sim));
@@ -59,24 +57,26 @@ for i_sim = 1:num_samples
     dragdata = baseline_drag;
     dragdata.DRAG = dragdata.DRAG * cases.cd_scale(i_sim);
     
-    data = doc.simulate(orksim, ...
+    orkdata = doc.simulate(orksim, ...
         outputs = stored_vars, stop = "APOGEE", drag = dragdata, atmos = airdata);
 
     % Informational
-    cases{i_sim, "wind_speed"} = data{eventfilter("LAUNCHROD"), "Wind velocity"};
-    cases{i_sim, "apogee"} = max(data.Altitude);
+    cases{i_sim, "wind_speed"} = orkdata{eventfilter("LAUNCHROD"), "Wind velocity"};
+    cases{i_sim, "apogee"} = max(orkdata.Altitude);
 
-    idx_on = find(data.("Vertical velocity") > vel_max, 1, "last") + 1;
-    cases{i_sim, "on_time"} = seconds(data.Time(idx_on));
-    
-    % burnout is not garaunteeed to fall on a simulation sample time if the
-    % time step is large enough
-    evs = data.Properties.Events;
-    burnout_time = evs.Time(evs.EventLabels == "BURNOUT");
-    data_init = retime(data, burnout_time);
-    % initial conditions for Simulink model
-    cases{i_sim, "position_init"} = data_init{1, ["Lateral distance", "Altitude"]};
-    cases{i_sim, "velocity_init"} = data_init{1, ["Lateral velocity", "Vertical velocity"]};
+    % store state time history to burnout
+    orkdata_LAUNCH_to_BURNOUT = orkdata(timerange(eventfilter("LAUNCH"), eventfilter("BURNOUT")),:);
+    orkdata_for_simulink = orkdata_LAUNCH_to_BURNOUT(:,[]);
+    orkdata_for_simulink.position = [orkdata_LAUNCH_to_BURNOUT.("Lateral distance") orkdata_LAUNCH_to_BURNOUT.Altitude];
+    orkdata_for_simulink.velocity = [orkdata_LAUNCH_to_BURNOUT.("Lateral velocity") orkdata_LAUNCH_to_BURNOUT.("Vertical velocity")];
+    orkdata_for_simulink.acceleration = [orkdata_LAUNCH_to_BURNOUT.("Lateral acceleration") orkdata_LAUNCH_to_BURNOUT.("Vertical acceleration")];
+    orkdata_for_simulink.pitch = orkdata_LAUNCH_to_BURNOUT.("Vertical orientation (zenith)");
+    orkdata_for_simulink(seconds(0), :) = orkdata_for_simulink(1,:); % zero out OR weirdness at time zero
+    orkdata_for_simulink = sortrows(orkdata_for_simulink);
+    orkdata_for_simulink(1:2, :).position = [0 0; 0 0];
+    orkdata_for_simulink(1:2, :).velocity = [0 0; 0 0];
+    orkdata_for_simulink(1:2, :).acceleration = [0 0; 0 0];
+    cases{i_sim, "orkdata_for_simulink"} = {orkdata_for_simulink};
 
     fprintf("Finished %d of %d in %.2f sec\n", i_sim, num_samples, toc(start));
 end

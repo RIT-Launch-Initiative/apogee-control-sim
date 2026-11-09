@@ -1,6 +1,8 @@
 clear;
 project_globals;
 
+turn_airbrakes_off = true;
+
 sensor_mode = "noisy";
 % sensor_mode = "ideal";
 
@@ -21,7 +23,7 @@ else
     lookups = matfile(runs_file, Writable = false);
 end
 
-cases = runs.ork_100;
+cases = runs.ork_400;
 % cases = cases(1:10, :);
 
 target_name = sprintf("filt-%s_ctrl-%s_%d", filt_under_test, ctrl_under_test, height(cases));
@@ -33,7 +35,7 @@ simin = simin.setVariable(dt = 0.01);
 
 simin = simin.setModelParameter(SimulationMode = "accelerator");
 
-orkdata = doc.simulate(doc.sims(sim_name), outputs = "ALL", stop = "APOGEE");
+orkdata = doc.simulate(doc.sims(sim_name), outputs = "ALL", stop = "BURNOUT");
 inits = get_initial_data(orkdata);
 simin = simin.setVariable(t_0 = inits.t_0);
 
@@ -89,18 +91,11 @@ switch filt_under_test
         simin = structs2inputs(simin, alt_filter_params("designed"));
         simin = structs2inputs(simin, accel_filter_params("designed"));
     case "kalman"
-        params = kalman_filter_params("alt-accel-bias");
-
-        % This is not strictly accurate;
-        % - each simulation will have a different initial state
-        % - the estimated iniital state will not be the true state
-        % however, the filter will quickly settle to a close-to-true value and
-        % this is better than initializing with all zeros
-        initdata = retime(orkdata, seconds(inits.t_0));
-        params.kalm_initial = [initdata.Altitude; 
-            initdata.("Vertical velocity");
-            initdata.("Vertical acceleration");
-            9.81];
+        params = kalman_filter_params("RISK-flown");
+        params.kalm_initial = [0;
+                               0;
+                               0;
+                               9.8];
 
         simin = simin.setVariable(filter_mode = "kalman");
         simin = structs2inputs(simin, params);
@@ -109,25 +104,20 @@ switch filt_under_test
         error ("Unrecognzied case %s", filt_under_test);
 end
 
+simin = simin.setVariable(turn_airbrakes_off = turn_airbrakes_off);
+simin = simin.setVariable(time_start = time_start);
+
 fprintf("Creating Monte Carlo input array...");
 
+simins = structs2inputs(simin, table2struct(cases(:, "orkdata_for_simulink")));
+
 start = tic;
-monte_inits = table2struct(cases(:, ["position_init", "velocity_init"]));
-for i_case = 1:length(monte_inits)
-    % these are rows of a table, but need to be column vectors in the simulation
-    monte_inits(i_case).position_init = monte_inits(i_case).position_init'; 
-    monte_inits(i_case).velocity_init = monte_inits(i_case).velocity_init'; 
-    monte_inits(i_case).DRAG_LUT = xarray2lut(...
-        cases.cd_scale(i_case) * baseline_params.cd_array, ...
-        ["mach", "effort"], "drag_table");
-end
-simins = structs2inputs(simin, monte_inits);
-
 fprintf(" finished in %.1f sec\n", toc(start));
-simouts = sim(simins, ShowProgress = "on", StopOnError = true, UseFastRestart = "on");
-% parsim() gets stuck on configuring the cache folder for some reason
 
+% simouts = sim(simins, ShowProgress = "on", StopOnError = true, UseFastRestart = "on");
+simouts = parsim(simins, ShowProgress="on", StopOnError="on", UseFastRestart="on");
 
+%% Plot
 lower_bounds = luts.lower_bounds;
 upper_bounds = luts.upper_bounds;
 
@@ -135,7 +125,7 @@ traj_figure = figure(name = "Monte Carlo raw outputs");
 layout = tiledlayout(3,1);
 
 traj_ax = nexttile([2 1]); hold on; grid on;
-xlim([min(lower_bounds.alt), max(lower_bounds.alt)]);
+% xlim([min(lower_bounds.alt), max(lower_bounds.alt)*1.01]);
 ylim([min(double(lower_bounds)), max(double(upper_bounds))]);
 xlabel("Altitude");
 xsecondarylabel("m AGL");
@@ -148,7 +138,7 @@ ylabel("Extension");
 xlabel("Time");
 
 colors = colororder; % get default MATLAB color sequence 
-col = [colors(1,:) 0.1];
+col = [colors(1,:) interp1([1 10 40 100 500 1e4], [1 0.4 0.2 0.1 0.02 0], height(cases), "linear", "extrap")];
 
 cases.ctrl_apogee = NaN(height(cases), 1);
 for i_sim = 1:length(simouts)
@@ -156,7 +146,7 @@ for i_sim = 1:length(simouts)
     logs = fillmissing(logs, "previous");
 
     % decimate the plot so it isn't as astonishingly laggy in a PDF
-    logs = retime(logs, "regular", "linear", SampleRate = 5); 
+    % logs = retime(logs, "regular", "linear", SampleRate = 5); 
 
     cases.ctrl_apogee(i_sim) = simouts(i_sim).apogee;
     plot(traj_ax, logs.altitude_est, logs.velocity_est, Color = col);
@@ -166,6 +156,9 @@ end
 axes(traj_ax);
 plot(lower_bounds, "--k");
 plot(upper_bounds, "--k");
+
+histogram(traj_ax, cases.ctrl_apogee(:),25);
+xlim([min(lower_bounds.alt), max([lower_bounds.alt;cases.ctrl_apogee(:)])*1.01]);
 
 fprintf("Target: %s\n", target_name);
 fprintf("Final apogee error quartiles: [%+.1f %+.2f %+.1f] m\n", ...

@@ -1,7 +1,7 @@
 clear;
 project_globals;
 
-turn_airbrakes_off = true;
+turn_airbrakes_off = false;
 
 sensor_mode = "noisy";
 % sensor_mode = "ideal";
@@ -15,7 +15,7 @@ ctrl_under_test = "quantile_effort";
 
 simin = Simulink.SimulationInput("sim_controller");
 
-orkdata = doc.simulate(doc.sims(sim_name), outputs = "ALL", stop = "APOGEE");
+orkdata = doc.simulate(doc.sims(sim_name), outputs = "ALL", stop = "BURNOUT");
 inits = get_initial_data(orkdata);
 
 switch sensor_mode
@@ -36,10 +36,7 @@ switch filt_under_test
         simin = structs2inputs(simin, accel_filter_params("designed"));
     case "kalman"
         params = kalman_filter_params("RISK-flown");
-        % the initial state is not likely to be perfect, but this is more
-        % realistic than using all-zeros 
-        initdata = retime(orkdata, seconds(inits.t_0));
-        params.kalm_initial = [0; 
+        params.kalm_initial = [0;
                                0;
                                0;
                                9.8];
